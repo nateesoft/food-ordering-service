@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== MENU ====================
+
+model MenuItem {
+  id          Int       @id @default(autoincrement())
+  name        String
+  category    String
+  price       Float
+  image       String?
+  description String?
+  rating      Float?
+  reviewCount Int       @default(0)
+  type        MenuType  @default(SINGLE)
+  isActive    Boolean   @default(true)
+
+  setComponents        SetComponent[]
+  availableAddOns      MenuItemAddOn[]
+  availableAddOnGroups MenuItemAddOnGroup[]
+  nestedMenuConfig     NestedMenuConfig?
+  orderItems           OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MenuType {
+  SINGLE
+  SET
+  GROUP
+}
+
+model SetComponent {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  quantity    Int      @default(1)
+  menuItemId  Int
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+}
+
+model AddOn {
+  id       Int     @id @default(autoincrement())
+  name     String
+  price    Float
+  category String
+  isActive Boolean @default(true)
+
+  menuItems MenuItemAddOn[]
+  groups    AddOnGroupItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AddOnGroup {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  category    String
+  image       String?
+  isActive    Boolean @default(true)
+
+  items     AddOnGroupItem[]
+  menuItems MenuItemAddOnGroup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AddOnGroupItem {
+  id           Int        @id @default(autoincrement())
+  addOnId      Int
+  addOnGroupId Int
+  addOn        AddOn      @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+  addOnGroup   AddOnGroup @relation(fields: [addOnGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([addOnId, addOnGroupId])
+}
+
+model MenuItemAddOn {
+  id         Int      @id @default(autoincrement())
+  menuItemId Int
+  addOnId    Int
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  addOn      AddOn    @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, addOnId])
+}
+
+model MenuItemAddOnGroup {
+  id           Int        @id @default(autoincrement())
+  menuItemId   Int
+  addOnGroupId Int
+  menuItem     MenuItem   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  addOnGroup   AddOnGroup @relation(fields: [addOnGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, addOnGroupId])
+}
+
+// ==================== NESTED MENU ====================
+
+model NestedMenuOption {
+  id                    Int     @id @default(autoincrement())
+  name                  String
+  description           String?
+  price                 Float   @default(0)
+  image                 String?
+  type                  String  @default("single")
+  requireChildSelection Boolean @default(false)
+  minChildSelections    Int?
+  maxChildSelections    Int?
+
+  parentId Int?
+  parent   NestedMenuOption?  @relation("NestedOptions", fields: [parentId], references: [id], onDelete: Cascade)
+  children NestedMenuOption[] @relation("NestedOptions")
+
+  rootConfigs NestedMenuConfigOption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NestedMenuConfig {
+  id               Int      @id @default(autoincrement())
+  menuItemId       Int      @unique
+  menuItem         MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  enabled          Boolean  @default(true)
+  requireSelection Boolean  @default(true)
+  minSelections    Int      @default(1)
+  maxSelections    Int      @default(1)
+
+  rootOptions NestedMenuConfigOption[]
+}
+
+model NestedMenuConfigOption {
+  id               Int              @id @default(autoincrement())
+  configId         Int
+  nestedOptionId   Int
+  config           NestedMenuConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  nestedMenuOption NestedMenuOption @relation(fields: [nestedOptionId], references: [id], onDelete: Cascade)
+
+  @@unique([configId, nestedOptionId])
+}
+
+// ==================== ORDERS ====================
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  orderId     String      @unique
+  totalAmount Float
+  totalItems  Int
+  status      OrderStatus @default(PREPARING)
+  tableNumber String?
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PREPARING
+  COMPLETED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id                  Int      @id @default(autoincrement())
+  orderId             Int
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId          Int
+  menuItem            MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity            Int      @default(1)
+  price               Float
+  specialInstructions String?
+  diningOption        String
+  status              String   @default("preparing")
+
+  selectedAddOns        Json?
+  selectedAddOnGroups   Json?
+  selectedNestedOptions Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== QUEUE (KIOSK) ====================
+
+model QueueTicket {
+  id            Int         @id @default(autoincrement())
+  queueId       String      @unique
+  queueNumber   Int
+  orderType     String
+  totalAmount   Float
+  totalItems    Int
+  status        QueueStatus @default(WAITING)
+  estimatedTime Int?
+  customerName  String?
+  memberId      String?
+  paymentMethod String?
+
+  items Json
+
+  calledAt    DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum QueueStatus {
+  WAITING
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+// ==================== TABLES ====================
+
+model Table {
+  id            Int         @id @default(autoincrement())
+  number        String      @unique
+  capacity      Int
+  status        TableStatus @default(AVAILABLE)
+  size          String
+  positionX     Float
+  positionY     Float
+  currentGuests Int?
+
+  mergedWith Int[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+}
+
+// ==================== SERVICE REQUESTS ====================
+
+model ServiceRequest {
+  id          Int                  @id @default(autoincrement())
+  requestId   String               @unique
+  type        ServiceRequestType
+  tableNumber String?
+  details     String?
+  items       String[]
+  status      ServiceRequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ServiceRequestType {
+  STAFF
+  UTENSILS
+  PAYMENT
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  COMPLETED
+}
+
+// ==================== MEMBERS ====================
+
+model Member {
+  id       Int     @id @default(autoincrement())
+  memberId String  @unique
+  name     String
+  phone    String?
+  email    String?
+  points   Int     @default(0)
+  tier     String  @default("bronze")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== AUTH ====================
+
+model User {
+  id       Int      @id @default(autoincrement())
+  username String   @unique
+  password String
+  role     UserRole @default(STAFF)
+  name     String
+  isActive Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+  CHEF
+}
