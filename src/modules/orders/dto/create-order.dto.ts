@@ -31,17 +31,17 @@ class OrderItemDto {
   @IsString()
   diningOption: string;
 
-  @ApiPropertyOptional({ type: 'object' })
+  @ApiPropertyOptional()
   @IsOptional()
-  selectedAddOns?: any;
+  selectedAddOns?: Record<string, any>;
 
-  @ApiPropertyOptional({ type: 'object' })
+  @ApiPropertyOptional()
   @IsOptional()
-  selectedAddOnGroups?: any;
+  selectedAddOnGroups?: Record<string, any>;
 
-  @ApiPropertyOptional({ type: 'object' })
+  @ApiPropertyOptional()
   @IsOptional()
-  selectedNestedOptions?: any;
+  selectedNestedOptions?: Record<string, any>;
 }
 
 export class CreateOrderDto {

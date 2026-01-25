@@ -29,6 +29,6 @@ export class CreateQueueTicketDto {
   @IsOptional()
   paymentMethod?: string;
 
-  @ApiProperty({ type: 'object', description: 'Cart items as JSON' })
-  items: any;
+  @ApiProperty({ description: 'Cart items as JSON' })
+  items: Record<string, any>;
 }
