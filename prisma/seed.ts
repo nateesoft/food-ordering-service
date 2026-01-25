@@ -5,7 +5,7 @@ import { PrismaClient, MenuType, TableStatus, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool, { schema: 'food_ordering' });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

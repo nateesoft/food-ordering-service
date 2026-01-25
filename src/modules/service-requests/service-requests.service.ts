@@ -100,39 +100,44 @@ export class ServiceRequestsService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [pending, completed, staffRequests, utensilRequests, paymentRequests] =
-      await Promise.all([
-        this.prisma.serviceRequest.count({
-          where: {
-            createdAt: { gte: today },
-            status: ServiceRequestStatus.PENDING,
-          },
-        }),
-        this.prisma.serviceRequest.count({
-          where: {
-            createdAt: { gte: today },
-            status: ServiceRequestStatus.COMPLETED,
-          },
-        }),
-        this.prisma.serviceRequest.count({
-          where: {
-            createdAt: { gte: today },
-            type: ServiceRequestType.STAFF,
-          },
-        }),
-        this.prisma.serviceRequest.count({
-          where: {
-            createdAt: { gte: today },
-            type: ServiceRequestType.UTENSILS,
-          },
-        }),
-        this.prisma.serviceRequest.count({
-          where: {
-            createdAt: { gte: today },
-            type: ServiceRequestType.PAYMENT,
-          },
-        }),
-      ]);
+    const [
+      pending,
+      completed,
+      staffRequests,
+      utensilRequests,
+      paymentRequests,
+    ] = await Promise.all([
+      this.prisma.serviceRequest.count({
+        where: {
+          createdAt: { gte: today },
+          status: ServiceRequestStatus.PENDING,
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          createdAt: { gte: today },
+          status: ServiceRequestStatus.COMPLETED,
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          createdAt: { gte: today },
+          type: ServiceRequestType.STAFF,
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          createdAt: { gte: today },
+          type: ServiceRequestType.UTENSILS,
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          createdAt: { gte: today },
+          type: ServiceRequestType.PAYMENT,
+        },
+      }),
+    ]);
 
     return {
       pending,

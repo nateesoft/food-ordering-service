@@ -39,7 +39,11 @@ export class MembersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all members' })
-  @ApiQuery({ name: 'tier', required: false, enum: ['bronze', 'silver', 'gold'] })
+  @ApiQuery({
+    name: 'tier',
+    required: false,
+    enum: ['bronze', 'silver', 'gold'],
+  })
   @ApiResponse({ status: 200, description: 'List of members' })
   findAll(@Query('tier') tier?: string) {
     return this.membersService.findAll(tier);

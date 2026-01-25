@@ -24,7 +24,10 @@ export class CreateQueueTicketDto {
   @IsOptional()
   memberId?: string;
 
-  @ApiPropertyOptional({ example: 'cash', enum: ['cash', 'credit-card', 'qr-code', 'mobile-banking'] })
+  @ApiPropertyOptional({
+    example: 'cash',
+    enum: ['cash', 'credit-card', 'qr-code', 'mobile-banking'],
+  })
   @IsString()
   @IsOptional()
   paymentMethod?: string;

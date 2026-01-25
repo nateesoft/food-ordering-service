@@ -22,7 +22,10 @@ export class UpdateMemberDto {
   @IsOptional()
   points?: number;
 
-  @ApiPropertyOptional({ example: 'silver', enum: ['bronze', 'silver', 'gold'] })
+  @ApiPropertyOptional({
+    example: 'silver',
+    enum: ['bronze', 'silver', 'gold'],
+  })
   @IsString()
   @IsOptional()
   tier?: string;
