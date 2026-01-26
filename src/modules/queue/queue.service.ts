@@ -34,9 +34,12 @@ export class QueueService {
   async create(createQueueTicketDto: CreateQueueTicketDto) {
     const queueNumber = await this.getNextQueueNumber();
 
+    const { items, ...rest } = createQueueTicketDto;
+
     const ticket = await this.prisma.queueTicket.create({
       data: {
-        ...createQueueTicketDto,
+        ...rest,
+        items: items as unknown as object, // Convert to JSON-compatible type
         queueId: this.generateQueueId(),
         queueNumber,
         estimatedTime: 15, // Default 15 minutes
