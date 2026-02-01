@@ -10,6 +10,7 @@ import { TablesModule } from './modules/tables/tables.module';
 import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 import { MembersModule } from './modules/members/members.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { StaffModule } from './modules/staff/staff.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     OrdersModule,
     QueueModule,
     TablesModule,
+    StaffModule,
     ServiceRequestsModule,
     MembersModule,
     DashboardModule,
