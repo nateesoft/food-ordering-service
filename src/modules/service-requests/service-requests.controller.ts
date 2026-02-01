@@ -85,8 +85,6 @@ export class ServiceRequestsController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update service request status' })
   @ApiResponse({ status: 200, description: 'Service request status updated' })
   @ApiResponse({ status: 404, description: 'Service request not found' })
