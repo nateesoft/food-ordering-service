@@ -1,11 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
 import { OrderStatus } from '@prisma/client';
+import { InventoryIntegrationService } from '../inventory-integration/inventory-integration.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private inventoryIntegration: InventoryIntegrationService,
+  ) {}
 
   private generateOrderId(): string {
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -42,7 +48,37 @@ export class OrdersService {
       },
     });
 
+    // Deduct stock from inventory system
+    this.deductInventoryStock(order.orderId, items);
+
     return order;
+  }
+
+  private async deductInventoryStock(
+    orderId: string,
+    items: { menuItemId: number; quantity: number }[],
+  ) {
+    try {
+      const result = await this.inventoryIntegration.deductStockForOrder({
+        orderId,
+        items: items.map((item) => ({
+          menuItemId: item.menuItemId,
+          quantity: item.quantity,
+        })),
+      });
+
+      if (result) {
+        this.logger.log(
+          `Stock deduction successful for order ${orderId}: ${result.results.length} menu items processed`,
+        );
+      } else {
+        this.logger.warn(
+          `Stock deduction failed or inventory service unavailable for order ${orderId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Error deducting stock for order ${orderId}: ${error}`);
+    }
   }
 
   async findAll(status?: OrderStatus, tableNumber?: string) {
