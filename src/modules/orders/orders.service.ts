@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
 import { OrderStatus } from '@prisma/client';
-import { InventoryIntegrationService } from '../inventory-integration/inventory-integration.service';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class OrdersService {
@@ -10,7 +10,7 @@ export class OrdersService {
 
   constructor(
     private prisma: PrismaService,
-    private inventoryIntegration: InventoryIntegrationService,
+    private inventoryService: InventoryService,
   ) {}
 
   private generateOrderId(): string {
@@ -21,6 +21,18 @@ export class OrdersService {
 
   async create(createOrderDto: CreateOrderDto) {
     const { items, ...orderData } = createOrderDto;
+
+    // Pre-check stock availability
+    const unavailableItems = await this.inventoryService.checkBulkAvailability(
+      items.map((i) => ({ menuItemId: i.menuItemId, quantity: i.quantity })),
+    );
+
+    if (unavailableItems.length > 0) {
+      throw new BadRequestException({
+        message: 'Some menu items are out of stock',
+        unavailableItems,
+      });
+    }
 
     const order = await this.prisma.order.create({
       data: {
@@ -59,21 +71,21 @@ export class OrdersService {
     items: { menuItemId: number; quantity: number }[],
   ) {
     try {
-      const result = await this.inventoryIntegration.deductStockForOrder({
+      const result = await this.inventoryService.deductStockForOrder(
         orderId,
-        items: items.map((item) => ({
+        items.map((item) => ({
           menuItemId: item.menuItemId,
           quantity: item.quantity,
         })),
-      });
+      );
 
-      if (result) {
+      if (result.processed) {
         this.logger.log(
-          `Stock deduction successful for order ${orderId}: ${result.results.length} menu items processed`,
+          `Stock deduction completed for order ${orderId}: ${result.results.length} ingredients processed`,
         );
       } else {
-        this.logger.warn(
-          `Stock deduction failed or inventory service unavailable for order ${orderId}`,
+        this.logger.log(
+          `No recipes found for order ${orderId}, no stock deduction needed`,
         );
       }
     } catch (error) {
@@ -146,7 +158,28 @@ export class OrdersService {
   }
 
   async updateStatus(id: number, updateStatusDto: UpdateOrderStatusDto) {
-    await this.findOne(id);
+    const order = await this.findOne(id);
+
+    // If cancelling, restore stock
+    if (
+      updateStatusDto.status === OrderStatus.CANCELLED &&
+      order.status !== OrderStatus.CANCELLED
+    ) {
+      try {
+        await this.inventoryService.restoreStockForOrder(
+          order.orderId,
+          order.items.map((item) => ({
+            menuItemId: item.menuItemId,
+            quantity: item.quantity,
+          })),
+        );
+        this.logger.log(`Stock restored for cancelled order ${order.orderId}`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to restore stock for order ${order.orderId}: ${error}`,
+        );
+      }
+    }
 
     return this.prisma.order.update({
       where: { id },

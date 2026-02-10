@@ -10,7 +10,7 @@ import { TablesModule } from './modules/tables/tables.module';
 import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 import { MembersModule } from './modules/members/members.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { InventoryIntegrationModule } from './modules/inventory-integration/inventory-integration.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import { StaffModule } from './modules/staff/staff.module';
 
 @Module({
@@ -28,7 +28,7 @@ import { StaffModule } from './modules/staff/staff.module';
     ServiceRequestsModule,
     MembersModule,
     DashboardModule,
-    InventoryIntegrationModule,
+    InventoryModule,
     StaffModule,
   ],
   controllers: [],

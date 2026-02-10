@@ -26,6 +26,7 @@ model MenuItem {
   nestedMenuConfig     NestedMenuConfig?
   orderItems           OrderItem[]
   setComponents        SetComponent[]
+  ingredients          MenuItemIngredient[]
 }
 
 model SetComponent {
@@ -206,6 +207,7 @@ model Table {
   mergedWith    Int[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  staffAssignments TableStaffAssignment[]
 }
 
 model ServiceRequest {
@@ -236,14 +238,30 @@ model Member {
 
 model User {
   @@schema("food_ordering")
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  role      UserRole @default(STAFF)
-  name      String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   Int                    @id @default(autoincrement())
+  username             String                 @unique
+  password             String
+  pin                  String?                @unique
+  role                 UserRole               @default(STAFF)
+  name                 String
+  isActive             Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  tableStaffAssignments TableStaffAssignment[]
+}
+
+model TableStaffAssignment {
+  @@schema("food_ordering")
+  id           Int      @id @default(autoincrement())
+  tableNumber  String
+  userId       Int
+  isActive     Boolean  @default(true)
+  checkedInAt  DateTime @default(now())
+  lastSeenAt   DateTime @default(now())
+  table        Table    @relation(fields: [tableNumber], references: [number], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tableNumber, userId])
 }
 
 enum MenuType {
@@ -295,4 +313,71 @@ enum UserRole {
   ADMIN
   STAFF
   CHEF
+}
+
+enum IngredientUnit {
+  @@schema("food_ordering")
+  GRAM
+  KILOGRAM
+  MILLILITER
+  LITER
+  PIECE
+  TABLESPOON
+  TEASPOON
+  CUP
+}
+
+enum TransactionType {
+  @@schema("food_ordering")
+  STOCK_IN
+  STOCK_OUT
+  ORDER_DEDUCTION
+  ADJUSTMENT
+}
+
+model Ingredient {
+  @@schema("food_ordering")
+  id           Int                    @id @default(autoincrement())
+  name         String                 @unique
+  unit         IngredientUnit
+  currentStock Float                  @default(0)
+  minStock     Float                  @default(0)
+  costPerUnit  Float?
+  isActive     Boolean                @default(true)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  recipes      MenuItemIngredient[]
+  transactions InventoryTransaction[]
+}
+
+model MenuItemIngredient {
+  @@schema("food_ordering")
+  id           Int        @id @default(autoincrement())
+  menuItemId   Int
+  ingredientId Int
+  quantityUsed Float
+  menuItem     MenuItem   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, ingredientId])
+}
+
+model InventoryTransaction {
+  @@schema("food_ordering")
+  id            Int             @id @default(autoincrement())
+  ingredientId  Int
+  type          TransactionType
+  quantity      Float
+  previousStock Float
+  newStock      Float
+  orderId       String?
+  notes         String?
+  performedBy   String?
+  createdAt     DateTime        @default(now())
+  ingredient    Ingredient      @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@index([ingredientId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([orderId])
 }
