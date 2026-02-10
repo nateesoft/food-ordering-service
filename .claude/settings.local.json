@@ -19,7 +19,10 @@
       "Bash(__NEW_LINE_52e172194b12c22b__ echo \"\")",
       "Bash(echo:*)",
       "Bash(xargs kill -9)",
-      "Bash(__NEW_LINE_e19a0915e88f3936__ echo \"\")"
+      "Bash(__NEW_LINE_e19a0915e88f3936__ echo \"\")",
+      "Bash(tree:*)",
+      "Bash(xargs cat:*)",
+      "Bash(npx prisma migrate:*)"
     ]
   }
 }

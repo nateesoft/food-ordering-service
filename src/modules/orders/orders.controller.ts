@@ -7,18 +7,15 @@ import {
   Param,
   Query,
   ParseIntPipe,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { OrderStatus } from '@prisma/client';
 
 @ApiTags('Orders')
@@ -76,8 +73,6 @@ export class OrdersController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update order status' })
   @ApiResponse({ status: 200, description: 'Order status updated' })
   @ApiResponse({ status: 404, description: 'Order not found' })
@@ -89,8 +84,6 @@ export class OrdersController {
   }
 
   @Patch(':orderId/items/:itemId/status')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update order item status' })
   @ApiResponse({ status: 200, description: 'Order item status updated' })
   updateItemStatus(
