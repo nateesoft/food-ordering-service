@@ -2,7 +2,11 @@ import {
   Controller,
   Post,
   Get,
+  Put,
+  Delete,
   Body,
+  Param,
+  ParseIntPipe,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -49,5 +53,39 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   async getProfile(@Request() req: { user: { id: number } }) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Get('users')
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 200, description: 'List of users' })
+  async findAllUsers() {
+    return this.authService.findAllUsers();
+  }
+
+  @Get('users/:id')
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiResponse({ status: 200, description: 'User details' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async findUserById(@Param('id', ParseIntPipe) id: number) {
+    return this.authService.findUserById(id);
+  }
+
+  @Put('users/:id')
+  @ApiOperation({ summary: 'Update user' })
+  @ApiResponse({ status: 200, description: 'User updated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: { name?: string; role?: string; pin?: string; isActive?: boolean; password?: string },
+  ) {
+    return this.authService.updateUser(id, data);
+  }
+
+  @Delete('users/:id')
+  @ApiOperation({ summary: 'Delete user' })
+  @ApiResponse({ status: 200, description: 'User deleted' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
+    return this.authService.deleteUser(id);
   }
 }

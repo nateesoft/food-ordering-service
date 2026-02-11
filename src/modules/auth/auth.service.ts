@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -113,5 +114,95 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async findAllUsers() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        role: true,
+        pin: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findUserById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        role: true,
+        pin: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user;
+  }
+
+  async updateUser(
+    id: number,
+    data: { name?: string; role?: string; pin?: string; isActive?: boolean; password?: string },
+  ) {
+    await this.findUserById(id);
+
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.role !== undefined) updateData.role = data.role;
+    if (data.pin !== undefined) {
+      // Check PIN uniqueness
+      if (data.pin) {
+        const existing = await this.prisma.user.findUnique({
+          where: { pin: data.pin },
+        });
+        if (existing && existing.id !== id) {
+          throw new ConflictException('PIN already in use');
+        }
+      }
+      updateData.pin = data.pin || null;
+    }
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        role: true,
+        pin: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async deleteUser(id: number) {
+    await this.findUserById(id);
+
+    await this.prisma.user.delete({
+      where: { id },
+    });
+
+    return { message: 'User deleted successfully' };
   }
 }
