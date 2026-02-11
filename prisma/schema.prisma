@@ -153,6 +153,7 @@ model Order {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   items       OrderItem[]
+  payments    Payment[]
 }
 
 model OrderItem {
@@ -380,4 +381,46 @@ model InventoryTransaction {
   @@index([type])
   @@index([createdAt])
   @@index([orderId])
+}
+
+enum PaymentMethod {
+  @@schema("food_ordering")
+  CASH
+  TRANSFER
+  CREDIT_CARD
+}
+
+enum PaymentStatus {
+  @@schema("food_ordering")
+  PENDING
+  PAID
+  REFUNDED
+}
+
+model Payment {
+  @@schema("food_ordering")
+  id             Int           @id @default(autoincrement())
+  receiptNumber  String        @unique
+  orderId        Int
+  order          Order         @relation(fields: [orderId], references: [id])
+  paymentMethod  PaymentMethod
+  paymentStatus  PaymentStatus @default(PENDING)
+  subtotal       Float
+  discountAmount Float         @default(0)
+  discountPoints Int           @default(0)
+  totalAmount    Float
+  paidAmount     Float         @default(0)
+  changeAmount   Float         @default(0)
+  memberId       String?
+  memberName     String?
+  pointsEarned   Int           @default(0)
+  cashierName    String?
+  note           String?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([paymentStatus])
+  @@index([createdAt])
 }

@@ -12,6 +12,7 @@ import { MembersModule } from './modules/members/members.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { StaffModule } from './modules/staff/staff.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { StaffModule } from './modules/staff/staff.module';
     DashboardModule,
     InventoryModule,
     StaffModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],

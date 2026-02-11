@@ -233,6 +233,31 @@ export class OrdersService {
     });
   }
 
+  async findUnpaidOrders() {
+    return this.prisma.order.findMany({
+      where: {
+        status: {
+          in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+        },
+        payments: {
+          none: {
+            paymentStatus: 'PAID',
+          },
+        },
+      },
+      include: {
+        items: {
+          include: {
+            menuItem: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
   async getTodayOrders() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

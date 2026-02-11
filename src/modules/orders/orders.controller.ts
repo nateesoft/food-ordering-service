@@ -49,6 +49,13 @@ export class OrdersController {
     return this.ordersService.getTodayOrders();
   }
 
+  @Get('unpaid')
+  @ApiOperation({ summary: 'Get unpaid orders (COMPLETED/DELIVERED without PAID payment)' })
+  @ApiResponse({ status: 200, description: 'List of unpaid orders' })
+  getUnpaidOrders() {
+    return this.ordersService.findUnpaidOrders();
+  }
+
   @Get('table/:tableNumber')
   @ApiOperation({ summary: 'Get orders by table number' })
   @ApiResponse({ status: 200, description: 'List of orders for table' })
