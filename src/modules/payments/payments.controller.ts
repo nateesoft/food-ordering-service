@@ -16,6 +16,7 @@ import {
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto';
 import { PaymentMethod } from '@prisma/client';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -27,8 +28,8 @@ export class PaymentsController {
   @ApiResponse({ status: 201, description: 'Payment created' })
   @ApiResponse({ status: 400, description: 'Invalid payment' })
   @ApiResponse({ status: 409, description: 'Order already paid' })
-  create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentsService.createPayment(createPaymentDto);
+  create(@BranchId() branchId: number, @Body() createPaymentDto: CreatePaymentDto) {
+    return this.paymentsService.createPayment(createPaymentDto, branchId);
   }
 
   @Get()
@@ -37,20 +38,22 @@ export class PaymentsController {
   @ApiQuery({ name: 'paymentMethod', required: false, enum: PaymentMethod })
   @ApiResponse({ status: 200, description: 'List of payments' })
   findAll(
+    @BranchId() branchId: number,
     @Query('today') today?: string,
     @Query('paymentMethod') paymentMethod?: PaymentMethod,
   ) {
     return this.paymentsService.findAll(
       today === 'true',
       paymentMethod,
+      branchId,
     );
   }
 
   @Get('summary/today')
   @ApiOperation({ summary: 'Get today payment summary' })
   @ApiResponse({ status: 200, description: 'Today payment summary' })
-  getTodaySummary() {
-    return this.paymentsService.getTodaySummary();
+  getTodaySummary(@BranchId() branchId: number) {
+    return this.paymentsService.getTodaySummary(branchId);
   }
 
   @Get('receipt/:receiptNumber')

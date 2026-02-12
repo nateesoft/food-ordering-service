@@ -325,11 +325,14 @@ export class StaffService {
     };
   }
 
-  async getAllActiveAssignments() {
+  async getAllActiveAssignments(branchId?: number) {
+    const where: any = { isActive: true };
+    if (branchId) {
+      where.table = { branchId };
+    }
+
     const assignments = await this.prisma.tableStaffAssignment.findMany({
-      where: {
-        isActive: true,
-      },
+      where,
       include: {
         user: {
           select: {

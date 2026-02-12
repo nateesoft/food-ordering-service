@@ -17,6 +17,7 @@ import {
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
 import { OrderStatus } from '@prisma/client';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -26,8 +27,8 @@ export class OrdersController {
   @Post()
   @ApiOperation({ summary: 'Create new order' })
   @ApiResponse({ status: 201, description: 'Order created successfully' })
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  create(@BranchId() branchId: number, @Body() createOrderDto: CreateOrderDto) {
+    return this.ordersService.create(createOrderDto, branchId);
   }
 
   @Get()
@@ -36,24 +37,25 @@ export class OrdersController {
   @ApiQuery({ name: 'tableNumber', required: false })
   @ApiResponse({ status: 200, description: 'List of orders' })
   findAll(
+    @BranchId() branchId: number,
     @Query('status') status?: OrderStatus,
     @Query('tableNumber') tableNumber?: string,
   ) {
-    return this.ordersService.findAll(status, tableNumber);
+    return this.ordersService.findAll(status, tableNumber, branchId);
   }
 
   @Get('today')
   @ApiOperation({ summary: 'Get today orders' })
   @ApiResponse({ status: 200, description: 'List of today orders' })
-  getTodayOrders() {
-    return this.ordersService.getTodayOrders();
+  getTodayOrders(@BranchId() branchId: number) {
+    return this.ordersService.getTodayOrders(branchId);
   }
 
   @Get('unpaid')
   @ApiOperation({ summary: 'Get unpaid orders (COMPLETED/DELIVERED without PAID payment)' })
   @ApiResponse({ status: 200, description: 'List of unpaid orders' })
-  getUnpaidOrders() {
-    return this.ordersService.findUnpaidOrders();
+  getUnpaidOrders(@BranchId() branchId: number) {
+    return this.ordersService.findUnpaidOrders(branchId);
   }
 
   @Get('table/:tableNumber')

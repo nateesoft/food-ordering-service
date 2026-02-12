@@ -13,10 +13,11 @@ export class ServiceRequestsService {
     return `SR-${timestamp}-${random}`;
   }
 
-  async create(createServiceRequestDto: CreateServiceRequestDto) {
+  async create(createServiceRequestDto: CreateServiceRequestDto, branchId?: number) {
     return this.prisma.serviceRequest.create({
       data: {
         ...createServiceRequestDto,
+        branchId,
         requestId: this.generateRequestId(),
         items: createServiceRequestDto.items || [],
       },
@@ -27,8 +28,13 @@ export class ServiceRequestsService {
     status?: ServiceRequestStatus,
     type?: ServiceRequestType,
     tableNumber?: string,
+    branchId?: number,
   ) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (status) {
       where.status = status;
@@ -73,11 +79,12 @@ export class ServiceRequestsService {
     });
   }
 
-  async getPendingRequests() {
+  async getPendingRequests(branchId?: number) {
+    const where: any = { status: ServiceRequestStatus.PENDING };
+    if (branchId) where.branchId = branchId;
+
     return this.prisma.serviceRequest.findMany({
-      where: {
-        status: ServiceRequestStatus.PENDING,
-      },
+      where,
       orderBy: {
         createdAt: 'asc',
       },
@@ -96,10 +103,11 @@ export class ServiceRequestsService {
     });
   }
 
-  async getRequestStats() {
+  async getRequestStats(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const branchFilter = branchId ? { branchId } : {};
     const [
       pending,
       completed,
@@ -111,30 +119,35 @@ export class ServiceRequestsService {
         where: {
           createdAt: { gte: today },
           status: ServiceRequestStatus.PENDING,
+          ...branchFilter,
         },
       }),
       this.prisma.serviceRequest.count({
         where: {
           createdAt: { gte: today },
           status: ServiceRequestStatus.COMPLETED,
+          ...branchFilter,
         },
       }),
       this.prisma.serviceRequest.count({
         where: {
           createdAt: { gte: today },
           type: ServiceRequestType.STAFF,
+          ...branchFilter,
         },
       }),
       this.prisma.serviceRequest.count({
         where: {
           createdAt: { gte: today },
           type: ServiceRequestType.UTENSILS,
+          ...branchFilter,
         },
       }),
       this.prisma.serviceRequest.count({
         where: {
           createdAt: { gte: today },
           type: ServiceRequestType.PAYMENT,
+          ...branchFilter,
         },
       }),
     ]);

@@ -22,6 +22,7 @@ import { CreateMenuItemDto, UpdateMenuItemDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Menu')
 @Controller('menu')
@@ -34,19 +35,20 @@ export class MenuController {
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of menu items' })
   findAll(
+    @BranchId() branchId: number,
     @Query('category') category?: string,
     @Query('isActive') isActive?: string,
   ) {
     const isActiveBoolean =
       isActive !== undefined ? isActive === 'true' : undefined;
-    return this.menuService.findAll(category, isActiveBoolean);
+    return this.menuService.findAll(category, isActiveBoolean, branchId);
   }
 
   @Get('categories')
   @ApiOperation({ summary: 'Get all menu categories' })
   @ApiResponse({ status: 200, description: 'List of categories' })
-  getCategories() {
-    return this.menuService.getCategories();
+  getCategories(@BranchId() branchId: number) {
+    return this.menuService.getCategories(branchId);
   }
 
   @Get(':id')
@@ -63,8 +65,8 @@ export class MenuController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new menu item (Admin only)' })
   @ApiResponse({ status: 201, description: 'Menu item created' })
-  create(@Body() createMenuItemDto: CreateMenuItemDto) {
-    return this.menuService.create(createMenuItemDto);
+  create(@BranchId() branchId: number, @Body() createMenuItemDto: CreateMenuItemDto) {
+    return this.menuService.create(createMenuItemDto, branchId);
   }
 
   @Put(':id')

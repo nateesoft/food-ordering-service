@@ -23,6 +23,7 @@ import { CreateTableDto, UpdateTableStatusDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { TableStatus } from '@prisma/client';
 
 @ApiTags('Tables')
@@ -34,22 +35,22 @@ export class TablesController {
   @ApiOperation({ summary: 'Get all tables' })
   @ApiQuery({ name: 'status', required: false, enum: TableStatus })
   @ApiResponse({ status: 200, description: 'List of tables' })
-  findAll(@Query('status') status?: TableStatus) {
-    return this.tablesService.findAll(status);
+  findAll(@BranchId() branchId: number, @Query('status') status?: TableStatus) {
+    return this.tablesService.findAll(status, branchId);
   }
 
   @Get('available')
   @ApiOperation({ summary: 'Get available tables' })
   @ApiResponse({ status: 200, description: 'List of available tables' })
-  getAvailableTables() {
-    return this.tablesService.getAvailableTables();
+  getAvailableTables(@BranchId() branchId: number) {
+    return this.tablesService.getAvailableTables(branchId);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get table statistics' })
   @ApiResponse({ status: 200, description: 'Table statistics' })
-  getTableStats() {
-    return this.tablesService.getTableStats();
+  getTableStats(@BranchId() branchId: number) {
+    return this.tablesService.getTableStats(branchId);
   }
 
   @Get(':id')
@@ -74,8 +75,8 @@ export class TablesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new table (Admin only)' })
   @ApiResponse({ status: 201, description: 'Table created' })
-  create(@Body() createTableDto: CreateTableDto) {
-    return this.tablesService.create(createTableDto);
+  create(@BranchId() branchId: number, @Body() createTableDto: CreateTableDto) {
+    return this.tablesService.create(createTableDto, branchId);
   }
 
   @Put(':id')

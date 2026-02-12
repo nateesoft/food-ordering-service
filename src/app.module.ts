@@ -13,6 +13,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { BranchModule } from './modules/branch/branch.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
       isGlobal: true,
     }),
     PrismaModule,
+    BranchModule,
     AuthModule,
     MenuModule,
     AddonsModule,

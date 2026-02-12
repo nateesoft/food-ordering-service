@@ -7,6 +7,28 @@ datasource db {
   schemas  = ["food_ordering"]
 }
 
+model Branch {
+  @@schema("food_ordering")
+  id              Int              @id @default(autoincrement())
+  name            String
+  code            String           @unique
+  address         String?
+  phone           String?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  menuItems       MenuItem[]
+  orders          Order[]
+  queueTickets    QueueTicket[]
+  tables          Table[]
+  serviceRequests ServiceRequest[]
+  ingredients     Ingredient[]
+  payments        Payment[]
+  addOns          AddOn[]
+  addOnGroups     AddOnGroup[]
+  users           User[]
+}
+
 model MenuItem {
   @@schema("food_ordering")
   id                   Int                  @id @default(autoincrement())
@@ -19,6 +41,8 @@ model MenuItem {
   reviewCount          Int                  @default(0)
   type                 MenuType             @default(SINGLE)
   isActive             Boolean              @default(true)
+  branchId             Int?
+  branch               Branch?              @relation(fields: [branchId], references: [id])
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   availableAddOns      MenuItemAddOn[]
@@ -27,6 +51,8 @@ model MenuItem {
   orderItems           OrderItem[]
   setComponents        SetComponent[]
   ingredients          MenuItemIngredient[]
+
+  @@index([branchId])
 }
 
 model SetComponent {
@@ -46,10 +72,14 @@ model AddOn {
   price     Float
   category  String
   isActive  Boolean          @default(true)
+  branchId  Int?
+  branch    Branch?          @relation(fields: [branchId], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   groups    AddOnGroupItem[]
   menuItems MenuItemAddOn[]
+
+  @@index([branchId])
 }
 
 model AddOnGroup {
@@ -61,10 +91,14 @@ model AddOnGroup {
   category    String
   image       String?
   isActive    Boolean              @default(true)
+  branchId    Int?
+  branch      Branch?              @relation(fields: [branchId], references: [id])
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
   items       AddOnGroupItem[]
   menuItems   MenuItemAddOnGroup[]
+
+  @@index([branchId])
 }
 
 model AddOnGroupItem {
@@ -150,10 +184,14 @@ model Order {
   totalItems  Int
   status      OrderStatus @default(PREPARING)
   tableNumber String?
+  branchId    Int?
+  branch      Branch?     @relation(fields: [branchId], references: [id])
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   items       OrderItem[]
   payments    Payment[]
+
+  @@index([branchId])
 }
 
 model OrderItem {
@@ -191,8 +229,12 @@ model QueueTicket {
   items         Json
   calledAt      DateTime?
   completedAt   DateTime?
+  branchId      Int?
+  branch        Branch?     @relation(fields: [branchId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@index([branchId])
 }
 
 model Table {
@@ -206,9 +248,13 @@ model Table {
   positionY     Float
   currentGuests Int?
   mergedWith    Int[]
+  branchId      Int?
+  branch        Branch?     @relation(fields: [branchId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   staffAssignments TableStaffAssignment[]
+
+  @@index([branchId])
 }
 
 model ServiceRequest {
@@ -220,8 +266,12 @@ model ServiceRequest {
   details     String?
   items       String[]
   status      ServiceRequestStatus @default(PENDING)
+  branchId    Int?
+  branch      Branch?              @relation(fields: [branchId], references: [id])
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
+
+  @@index([branchId])
 }
 
 model Member {
@@ -246,9 +296,13 @@ model User {
   role                 UserRole               @default(STAFF)
   name                 String
   isActive             Boolean                @default(true)
+  branchId             Int?
+  branch               Branch?                @relation(fields: [branchId], references: [id])
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   tableStaffAssignments TableStaffAssignment[]
+
+  @@index([branchId])
 }
 
 model TableStaffAssignment {
@@ -339,16 +393,21 @@ enum TransactionType {
 model Ingredient {
   @@schema("food_ordering")
   id           Int                    @id @default(autoincrement())
-  name         String                 @unique
+  name         String
   unit         IngredientUnit
   currentStock Float                  @default(0)
   minStock     Float                  @default(0)
   costPerUnit  Float?
   isActive     Boolean                @default(true)
+  branchId     Int?
+  branch       Branch?                @relation(fields: [branchId], references: [id])
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
   recipes      MenuItemIngredient[]
   transactions InventoryTransaction[]
+
+  @@unique([name, branchId])
+  @@index([branchId])
 }
 
 model MenuItemIngredient {
@@ -417,10 +476,13 @@ model Payment {
   cashierName    String?
   note           String?
   paidAt         DateTime?
+  branchId       Int?
+  branch         Branch?       @relation(fields: [branchId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   @@index([orderId])
   @@index([paymentStatus])
   @@index([createdAt])
+  @@index([branchId])
 }

@@ -19,7 +19,7 @@ export class OrdersService {
     return `ORD-${timestamp}-${random}`;
   }
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(createOrderDto: CreateOrderDto, branchId?: number) {
     const { items, ...orderData } = createOrderDto;
 
     // Pre-check stock availability
@@ -37,6 +37,7 @@ export class OrdersService {
     const order = await this.prisma.order.create({
       data: {
         ...orderData,
+        branchId,
         orderId: this.generateOrderId(),
         items: {
           create: items.map((item) => ({
@@ -93,8 +94,12 @@ export class OrdersService {
     }
   }
 
-  async findAll(status?: OrderStatus, tableNumber?: string) {
+  async findAll(status?: OrderStatus, tableNumber?: string, branchId?: number) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (status) {
       where.status = status;
@@ -233,18 +238,21 @@ export class OrdersService {
     });
   }
 
-  async findUnpaidOrders() {
-    return this.prisma.order.findMany({
-      where: {
-        status: {
-          in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED],
-        },
-        payments: {
-          none: {
-            paymentStatus: 'PAID',
-          },
+  async findUnpaidOrders(branchId?: number) {
+    const where: any = {
+      status: {
+        in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED],
+      },
+      payments: {
+        none: {
+          paymentStatus: 'PAID',
         },
       },
+    };
+    if (branchId) where.branchId = branchId;
+
+    return this.prisma.order.findMany({
+      where,
       include: {
         items: {
           include: {
@@ -258,16 +266,17 @@ export class OrdersService {
     });
   }
 
-  async getTodayOrders() {
+  async getTodayOrders(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const where: any = {
+      createdAt: { gte: today },
+    };
+    if (branchId) where.branchId = branchId;
+
     return this.prisma.order.findMany({
-      where: {
-        createdAt: {
-          gte: today,
-        },
-      },
+      where,
       include: {
         items: {
           include: {

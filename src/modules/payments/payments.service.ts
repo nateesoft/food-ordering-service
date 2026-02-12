@@ -16,25 +16,24 @@ export class PaymentsService {
     private membersService: MembersService,
   ) {}
 
-  private async generateReceiptNumber(): Promise<string> {
+  private async generateReceiptNumber(branchId?: number): Promise<string> {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
 
-    // Count today's payments to get running number
+    // Count today's payments to get running number (per branch)
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
 
-    const count = await this.prisma.payment.count({
-      where: {
-        createdAt: { gte: startOfDay },
-      },
-    });
+    const where: any = { createdAt: { gte: startOfDay } };
+    if (branchId) where.branchId = branchId;
+
+    const count = await this.prisma.payment.count({ where });
 
     const runningNumber = String(count + 1).padStart(3, '0');
     return `RCP-${dateStr}-${runningNumber}`;
   }
 
-  async createPayment(dto: CreatePaymentDto) {
+  async createPayment(dto: CreatePaymentDto, branchId?: number) {
     // 1. Find the order
     const order = await this.prisma.order.findUnique({
       where: { id: dto.orderId },
@@ -113,7 +112,7 @@ export class PaymentsService {
     }
 
     // 6. Generate receipt number
-    const receiptNumber = await this.generateReceiptNumber();
+    const receiptNumber = await this.generateReceiptNumber(branchId);
 
     // 7. Calculate points earned (1 point per 25 baht of totalAmount)
     if (memberId) {
@@ -125,6 +124,7 @@ export class PaymentsService {
       data: {
         receiptNumber,
         orderId: order.id,
+        branchId,
         paymentMethod: dto.paymentMethod,
         paymentStatus: PaymentStatus.PAID,
         subtotal,
@@ -164,8 +164,12 @@ export class PaymentsService {
     return payment;
   }
 
-  async findAll(today?: boolean, paymentMethod?: PaymentMethod) {
+  async findAll(today?: boolean, paymentMethod?: PaymentMethod, branchId?: number) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (today) {
       const startOfDay = new Date();
@@ -252,16 +256,17 @@ export class PaymentsService {
     });
   }
 
-  async getTodaySummary() {
+  async getTodaySummary(branchId?: number) {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const payments = await this.prisma.payment.findMany({
-      where: {
-        createdAt: { gte: startOfDay },
-        paymentStatus: PaymentStatus.PAID,
-      },
-    });
+    const where: any = {
+      createdAt: { gte: startOfDay },
+      paymentStatus: PaymentStatus.PAID,
+    };
+    if (branchId) where.branchId = branchId;
+
+    const payments = await this.prisma.payment.findMany({ where });
 
     const summary = {
       totalRevenue: 0,

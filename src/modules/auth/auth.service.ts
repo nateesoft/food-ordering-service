@@ -41,6 +41,7 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       role: user.role,
+      branchId: user.branchId,
     };
 
     return {
@@ -50,12 +51,13 @@ export class AuthService {
         username: user.username,
         name: user.name,
         role: user.role,
+        branchId: user.branchId,
       },
     };
   }
 
   async register(registerDto: RegisterDto) {
-    const { username, password, name, role } = registerDto;
+    const { username, password, name, role, branchId } = registerDto;
 
     const existingUser = await this.prisma.user.findUnique({
       where: { username },
@@ -73,6 +75,7 @@ export class AuthService {
         password: hashedPassword,
         name,
         role: role || 'STAFF',
+        branchId: branchId || null,
       },
     });
 
@@ -81,6 +84,7 @@ export class AuthService {
       username: user.username,
       name: user.name,
       role: user.role,
+      branchId: user.branchId,
     };
   }
 
@@ -116,8 +120,12 @@ export class AuthService {
     return user;
   }
 
-  async findAllUsers() {
+  async findAllUsers(branchId?: number) {
+    const where: any = {};
+    if (branchId) where.branchId = branchId;
+
     return this.prisma.user.findMany({
+      where,
       select: {
         id: true,
         username: true,
@@ -125,6 +133,7 @@ export class AuthService {
         role: true,
         pin: true,
         isActive: true,
+        branchId: true,
         createdAt: true,
         updatedAt: true,
       },

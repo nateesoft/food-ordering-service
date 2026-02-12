@@ -20,6 +20,7 @@ import { QueueService } from './queue.service';
 import { QueueGateway } from './queue.gateway';
 import { CreateQueueTicketDto, UpdateQueueStatusDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { QueueStatus } from '@prisma/client';
 
 @ApiTags('Queue')
@@ -33,8 +34,8 @@ export class QueueController {
   @Post()
   @ApiOperation({ summary: 'Create new queue ticket' })
   @ApiResponse({ status: 201, description: 'Queue ticket created' })
-  async create(@Body() createQueueTicketDto: CreateQueueTicketDto) {
-    const ticket = await this.queueService.create(createQueueTicketDto);
+  async create(@BranchId() branchId: number, @Body() createQueueTicketDto: CreateQueueTicketDto) {
+    const ticket = await this.queueService.create(createQueueTicketDto, branchId);
     this.queueGateway.emitQueueCreated(ticket);
     return ticket;
   }
@@ -43,36 +44,36 @@ export class QueueController {
   @ApiOperation({ summary: 'Get all queue tickets' })
   @ApiQuery({ name: 'status', required: false, enum: QueueStatus })
   @ApiResponse({ status: 200, description: 'List of queue tickets' })
-  findAll(@Query('status') status?: QueueStatus) {
-    return this.queueService.findAll(status);
+  findAll(@BranchId() branchId: number, @Query('status') status?: QueueStatus) {
+    return this.queueService.findAll(status, branchId);
   }
 
   @Get('today')
   @ApiOperation({ summary: 'Get today queue tickets' })
   @ApiResponse({ status: 200, description: 'List of today queue tickets' })
-  getTodayQueue() {
-    return this.queueService.getTodayQueue();
+  getTodayQueue(@BranchId() branchId: number) {
+    return this.queueService.getTodayQueue(branchId);
   }
 
   @Get('waiting')
   @ApiOperation({ summary: 'Get waiting queue tickets' })
   @ApiResponse({ status: 200, description: 'List of waiting queue tickets' })
-  getWaitingQueue() {
-    return this.queueService.getWaitingQueue();
+  getWaitingQueue(@BranchId() branchId: number) {
+    return this.queueService.getWaitingQueue(branchId);
   }
 
   @Get('ready')
   @ApiOperation({ summary: 'Get ready queue tickets' })
   @ApiResponse({ status: 200, description: 'List of ready queue tickets' })
-  getReadyQueue() {
-    return this.queueService.getReadyQueue();
+  getReadyQueue(@BranchId() branchId: number) {
+    return this.queueService.getReadyQueue(branchId);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get queue statistics' })
   @ApiResponse({ status: 200, description: 'Queue statistics' })
-  getQueueStats() {
-    return this.queueService.getQueueStats();
+  getQueueStats(@BranchId() branchId: number) {
+    return this.queueService.getQueueStats(branchId);
   }
 
   @Get(':id')

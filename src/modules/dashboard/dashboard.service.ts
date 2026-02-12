@@ -6,9 +6,10 @@ import { OrderStatus, QueueStatus, TableStatus, PaymentStatus } from '@prisma/cl
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getOverviewStats() {
+  async getOverviewStats(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const branchFilter = branchId ? { branchId } : {};
 
     const [
       todayOrders,
@@ -20,27 +21,28 @@ export class DashboardService {
       totalTables,
     ] = await Promise.all([
       this.prisma.order.count({
-        where: { createdAt: { gte: today } },
+        where: { createdAt: { gte: today }, ...branchFilter },
       }),
       this.prisma.order.aggregate({
-        where: { createdAt: { gte: today } },
+        where: { createdAt: { gte: today }, ...branchFilter },
         _sum: { totalAmount: true },
       }),
       this.prisma.queueTicket.count({
-        where: { createdAt: { gte: today } },
+        where: { createdAt: { gte: today }, ...branchFilter },
       }),
       this.prisma.order.count({
         where: {
           status: { in: [OrderStatus.PREPARING] },
+          ...branchFilter,
         },
       }),
       this.prisma.serviceRequest.count({
-        where: { status: 'PENDING' },
+        where: { status: 'PENDING', ...branchFilter },
       }),
       this.prisma.table.count({
-        where: { status: TableStatus.OCCUPIED },
+        where: { status: TableStatus.OCCUPIED, ...branchFilter },
       }),
-      this.prisma.table.count(),
+      this.prisma.table.count({ where: { ...branchFilter } }),
     ]);
 
     return {
@@ -58,26 +60,27 @@ export class DashboardService {
     };
   }
 
-  async getQueueStats() {
+  async getQueueStats(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const branchFilter = branchId ? { branchId } : {};
 
     const [waiting, preparing, ready, completed, cancelled] = await Promise.all(
       [
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.WAITING },
+          where: { createdAt: { gte: today }, status: QueueStatus.WAITING, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.PREPARING },
+          where: { createdAt: { gte: today }, status: QueueStatus.PREPARING, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.READY },
+          where: { createdAt: { gte: today }, status: QueueStatus.READY, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.COMPLETED },
+          where: { createdAt: { gte: today }, status: QueueStatus.COMPLETED, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.CANCELLED },
+          where: { createdAt: { gte: today }, status: QueueStatus.CANCELLED, ...branchFilter },
         }),
       ],
     );
@@ -88,6 +91,7 @@ export class DashboardService {
         createdAt: { gte: today },
         status: QueueStatus.COMPLETED,
         completedAt: { not: null },
+        ...branchFilter,
       },
       select: {
         createdAt: true,
@@ -116,22 +120,23 @@ export class DashboardService {
     };
   }
 
-  async getOrderStats() {
+  async getOrderStats(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const branchFilter = branchId ? { branchId } : {};
 
     const [preparing, completed, delivered, cancelled] = await Promise.all([
       this.prisma.order.count({
-        where: { createdAt: { gte: today }, status: OrderStatus.PREPARING },
+        where: { createdAt: { gte: today }, status: OrderStatus.PREPARING, ...branchFilter },
       }),
       this.prisma.order.count({
-        where: { createdAt: { gte: today }, status: OrderStatus.COMPLETED },
+        where: { createdAt: { gte: today }, status: OrderStatus.COMPLETED, ...branchFilter },
       }),
       this.prisma.order.count({
-        where: { createdAt: { gte: today }, status: OrderStatus.DELIVERED },
+        where: { createdAt: { gte: today }, status: OrderStatus.DELIVERED, ...branchFilter },
       }),
       this.prisma.order.count({
-        where: { createdAt: { gte: today }, status: OrderStatus.CANCELLED },
+        where: { createdAt: { gte: today }, status: OrderStatus.CANCELLED, ...branchFilter },
       }),
     ]);
 
@@ -144,7 +149,7 @@ export class DashboardService {
     };
   }
 
-  async getPopularItems(limit: number = 10) {
+  async getPopularItems(limit: number = 10, branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -152,6 +157,7 @@ export class DashboardService {
       by: ['menuItemId'],
       where: {
         createdAt: { gte: today },
+        ...(branchId ? { order: { branchId } } : {}),
       },
       _sum: {
         quantity: true,
@@ -177,12 +183,13 @@ export class DashboardService {
     }));
   }
 
-  async getRevenueByHour() {
+  async getRevenueByHour(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const branchFilter = branchId ? { branchId } : {};
 
     const orders = await this.prisma.order.findMany({
-      where: { createdAt: { gte: today } },
+      where: { createdAt: { gte: today }, ...branchFilter },
       select: {
         createdAt: true,
         totalAmount: true,
@@ -208,11 +215,14 @@ export class DashboardService {
 
   // ===== Report Methods =====
 
-  async getRevenueReport(startDate: Date, endDate: Date) {
+  async getRevenueReport(startDate: Date, endDate: Date, branchId?: number) {
+    const branchFilter = branchId ? { branchId } : {};
+
     const payments = await this.prisma.payment.findMany({
       where: {
         paymentStatus: PaymentStatus.PAID,
         paidAt: { gte: startDate, lte: endDate },
+        ...branchFilter,
       },
     });
 
@@ -257,10 +267,13 @@ export class DashboardService {
     };
   }
 
-  async getOrdersReport(startDate: Date, endDate: Date) {
+  async getOrdersReport(startDate: Date, endDate: Date, branchId?: number) {
+    const branchFilter = branchId ? { branchId } : {};
+
     const orders = await this.prisma.order.findMany({
       where: {
         createdAt: { gte: startDate, lte: endDate },
+        ...branchFilter,
       },
       include: { items: true },
     });
@@ -309,10 +322,11 @@ export class DashboardService {
     };
   }
 
-  async getMenuPerformanceReport(startDate: Date, endDate: Date) {
+  async getMenuPerformanceReport(startDate: Date, endDate: Date, branchId?: number) {
     const orderItems = await this.prisma.orderItem.findMany({
       where: {
         createdAt: { gte: startDate, lte: endDate },
+        ...(branchId ? { order: { branchId } } : {}),
       },
       include: { menuItem: true },
     });
@@ -421,9 +435,11 @@ export class DashboardService {
     };
   }
 
-  async getDailySummary(startDate: Date, endDate: Date) {
+  async getDailySummary(startDate: Date, endDate: Date, branchId?: number) {
+    const branchFilter = branchId ? { branchId } : {};
+
     const orders = await this.prisma.order.findMany({
-      where: { createdAt: { gte: startDate, lte: endDate } },
+      where: { createdAt: { gte: startDate, lte: endDate }, ...branchFilter },
       select: { createdAt: true, totalAmount: true },
     });
 
@@ -431,6 +447,7 @@ export class DashboardService {
       where: {
         paymentStatus: PaymentStatus.PAID,
         paidAt: { gte: startDate, lte: endDate },
+        ...branchFilter,
       },
       select: { paidAt: true, totalAmount: true },
     });

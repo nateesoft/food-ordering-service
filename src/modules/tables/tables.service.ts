@@ -11,8 +11,12 @@ import { TableStatus } from '@prisma/client';
 export class TablesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(status?: TableStatus) {
+  async findAll(status?: TableStatus, branchId?: number) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (status) {
       where.status = status;
@@ -50,7 +54,7 @@ export class TablesService {
     return table;
   }
 
-  async create(createTableDto: CreateTableDto) {
+  async create(createTableDto: CreateTableDto, branchId?: number) {
     const existing = await this.prisma.table.findUnique({
       where: { number: createTableDto.number },
     });
@@ -62,7 +66,7 @@ export class TablesService {
     }
 
     return this.prisma.table.create({
-      data: createTableDto,
+      data: { ...createTableDto, branchId },
     });
   }
 
@@ -92,22 +96,24 @@ export class TablesService {
     });
   }
 
-  async getAvailableTables() {
+  async getAvailableTables(branchId?: number) {
+    const where: any = { status: TableStatus.AVAILABLE };
+    if (branchId) where.branchId = branchId;
+
     return this.prisma.table.findMany({
-      where: {
-        status: TableStatus.AVAILABLE,
-      },
+      where,
       orderBy: {
         number: 'asc',
       },
     });
   }
 
-  async getTableStats() {
+  async getTableStats(branchId?: number) {
+    const branchFilter = branchId ? { branchId } : {};
     const [available, occupied, reserved] = await Promise.all([
-      this.prisma.table.count({ where: { status: TableStatus.AVAILABLE } }),
-      this.prisma.table.count({ where: { status: TableStatus.OCCUPIED } }),
-      this.prisma.table.count({ where: { status: TableStatus.RESERVED } }),
+      this.prisma.table.count({ where: { status: TableStatus.AVAILABLE, ...branchFilter } }),
+      this.prisma.table.count({ where: { status: TableStatus.OCCUPIED, ...branchFilter } }),
+      this.prisma.table.count({ where: { status: TableStatus.RESERVED, ...branchFilter } }),
     ]);
 
     return {
