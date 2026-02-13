@@ -138,6 +138,7 @@ export class PaymentsService {
         pointsEarned,
         cashierName: dto.cashierName || null,
         note: dto.note || null,
+        shiftId: dto.shiftId || null,
         paidAt: new Date(),
       },
       include: {

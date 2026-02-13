@@ -27,6 +27,7 @@ model Branch {
   addOns          AddOn[]
   addOnGroups     AddOnGroup[]
   users           User[]
+  shifts          Shift[]
 }
 
 model MenuItem {
@@ -442,6 +443,12 @@ model InventoryTransaction {
   @@index([orderId])
 }
 
+enum ShiftStatus {
+  @@schema("food_ordering")
+  OPEN
+  CLOSED
+}
+
 enum PaymentMethod {
   @@schema("food_ordering")
   CASH
@@ -478,6 +485,8 @@ model Payment {
   paidAt         DateTime?
   branchId       Int?
   branch         Branch?       @relation(fields: [branchId], references: [id])
+  shiftId        Int?
+  shift          Shift?        @relation(fields: [shiftId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -485,4 +494,38 @@ model Payment {
   @@index([paymentStatus])
   @@index([createdAt])
   @@index([branchId])
+  @@index([shiftId])
+}
+
+model Shift {
+  @@schema("food_ordering")
+  id                 Int         @id @default(autoincrement())
+  shiftNumber        String      @unique
+  status             ShiftStatus @default(OPEN)
+  userId             Int
+  cashierName        String
+  branchId           Int?
+  branch             Branch?     @relation(fields: [branchId], references: [id])
+  openedAt           DateTime    @default(now())
+  closedAt           DateTime?
+  openingAmount      Float       @default(0)
+  closingAmount      Float?
+  expectedCashAmount Float?
+  cashDifference     Float?
+  totalRevenue       Float?
+  totalOrders        Int?
+  cashTotal          Float?
+  transferTotal      Float?
+  creditCardTotal    Float?
+  openingCashCount   Json?
+  closingCashCount   Json?
+  notes              String?
+  closingNotes       String?
+  payments           Payment[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([branchId])
+  @@index([status])
+  @@index([openedAt])
 }

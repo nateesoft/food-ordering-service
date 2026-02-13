@@ -34,4 +34,9 @@ export class CreatePaymentDto {
   @IsString()
   @IsOptional()
   note?: string;
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsNumber()
+  @IsOptional()
+  shiftId?: number;
 }
