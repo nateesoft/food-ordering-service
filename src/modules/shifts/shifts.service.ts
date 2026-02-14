@@ -7,10 +7,14 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenShiftDto, CloseShiftDto } from './dto';
 import { ShiftStatus, PaymentStatus } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ShiftsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   private async generateShiftNumber(branchId?: number): Promise<string> {
     const today = new Date();
@@ -55,7 +59,7 @@ export class ShiftsService {
     // 3. Generate shift number and create
     const shiftNumber = await this.generateShiftNumber(branchId);
 
-    return this.prisma.shift.create({
+    const shift = await this.prisma.shift.create({
       data: {
         shiftNumber,
         userId: staff.id,
@@ -66,6 +70,10 @@ export class ShiftsService {
         notes: dto.notes || null,
       },
     });
+
+    this.eventEmitter.emit('shift.opened', { data: shift, branchId });
+
+    return shift;
   }
 
   async closeShift(id: number, dto: CloseShiftDto) {
@@ -106,7 +114,7 @@ export class ShiftsService {
     const expectedCashAmount = shift.openingAmount + cashTotal;
     const cashDifference = dto.closingAmount - expectedCashAmount;
 
-    return this.prisma.shift.update({
+    const closedShift = await this.prisma.shift.update({
       where: { id },
       data: {
         status: ShiftStatus.CLOSED,
@@ -123,6 +131,10 @@ export class ShiftsService {
         creditCardTotal,
       },
     });
+
+    this.eventEmitter.emit('shift.closed', { data: closedShift, branchId: closedShift.branchId });
+
+    return closedShift;
   }
 
   async getActiveShift(branchId?: number) {

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MenuModule } from './modules/menu/menu.module';
@@ -16,12 +17,14 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     BranchModule,
     AuthModule,
@@ -38,6 +41,7 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
     PaymentsModule,
     ShiftsModule,
     PromotionsModule,
+    WebhooksModule,
   ],
   controllers: [],
   providers: [],

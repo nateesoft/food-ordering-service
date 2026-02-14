@@ -9,6 +9,7 @@ import { MembersService } from '../members/members.service';
 import { PromotionsService } from '../promotions/promotions.service';
 import { CreatePaymentDto, CreateMergedPaymentDto } from './dto';
 import { PaymentStatus, PaymentMethod } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class PaymentsService {
@@ -16,6 +17,7 @@ export class PaymentsService {
     private prisma: PrismaService,
     private membersService: MembersService,
     private promotionsService: PromotionsService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   private async generateReceiptNumber(branchId?: number): Promise<string> {
@@ -200,6 +202,9 @@ export class PaymentsService {
         await this.membersService.addPoints(memberId, pointsEarned);
       }
     }
+
+    // Emit webhook event
+    this.eventEmitter.emit('payment.completed', { data: payment, branchId });
 
     return payment;
   }
@@ -409,6 +414,9 @@ export class PaymentsService {
       }
     }
 
+    // Emit webhook event
+    this.eventEmitter.emit('payment.completed', { data: primaryPayment, branchId });
+
     return {
       payment: primaryPayment,
       mergedOrders: orders.map((o) => ({
@@ -608,6 +616,9 @@ export class PaymentsService {
         }
       }
     }
+
+    // Emit webhook event
+    this.eventEmitter.emit('payment.refunded', { data: updated, branchId: updated.branchId });
 
     return updated;
   }

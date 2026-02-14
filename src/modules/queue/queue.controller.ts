@@ -22,6 +22,7 @@ import { CreateQueueTicketDto, UpdateQueueStatusDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { QueueStatus } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @ApiTags('Queue')
 @Controller('queue')
@@ -29,6 +30,7 @@ export class QueueController {
   constructor(
     private readonly queueService: QueueService,
     private readonly queueGateway: QueueGateway,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Post()
@@ -37,6 +39,7 @@ export class QueueController {
   async create(@BranchId() branchId: number, @Body() createQueueTicketDto: CreateQueueTicketDto) {
     const ticket = await this.queueService.create(createQueueTicketDto, branchId);
     this.queueGateway.emitQueueCreated(ticket);
+    this.eventEmitter.emit('queue.created', { data: ticket, branchId });
     return ticket;
   }
 
@@ -104,6 +107,7 @@ export class QueueController {
   ) {
     const ticket = await this.queueService.updateStatus(id, updateStatusDto);
     this.queueGateway.emitQueueStatusChanged(ticket);
+    this.eventEmitter.emit('queue.status_changed', { data: ticket, branchId: ticket.branchId });
     return ticket;
   }
 

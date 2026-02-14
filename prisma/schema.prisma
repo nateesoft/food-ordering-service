@@ -29,6 +29,7 @@ model Branch {
   users           User[]
   shifts          Shift[]
   promotions      Promotion[]
+  webhooks        WebhookEndpoint[]
 }
 
 model MenuItem {
@@ -585,4 +586,60 @@ model Promotion {
   @@index([type])
   @@index([status])
   @@index([startDate, endDate])
+}
+
+enum WebhookEvent {
+  @@schema("food_ordering")
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  ORDER_CANCELLED
+  PAYMENT_COMPLETED
+  PAYMENT_REFUNDED
+  QUEUE_CREATED
+  QUEUE_STATUS_CHANGED
+  MEMBER_REGISTERED
+  SHIFT_OPENED
+  SHIFT_CLOSED
+  LOW_STOCK_ALERT
+}
+
+model WebhookEndpoint {
+  @@schema("food_ordering")
+  id          Int               @id @default(autoincrement())
+  name        String
+  url         String
+  secret      String
+  events      WebhookEvent[]
+  isActive    Boolean           @default(true)
+  branchId    Int?
+  branch      Branch?           @relation(fields: [branchId], references: [id])
+  headers     Json?
+  description String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deliveries  WebhookDelivery[]
+
+  @@index([branchId])
+  @@index([isActive])
+}
+
+model WebhookDelivery {
+  @@schema("food_ordering")
+  id              Int              @id @default(autoincrement())
+  webhookId       Int
+  webhook         WebhookEndpoint  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event           WebhookEvent
+  payload         Json
+  responseStatus  Int?
+  responseBody    String?
+  success         Boolean          @default(false)
+  attempts        Int              @default(1)
+  error           String?
+  duration        Int?
+  createdAt       DateTime         @default(now())
+
+  @@index([webhookId])
+  @@index([event])
+  @@index([createdAt])
+  @@index([success])
 }

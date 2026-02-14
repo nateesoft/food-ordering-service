@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderStatusDto, SplitOrderDto } from './dto';
 import { OrderStatus } from '@prisma/client';
 import { InventoryService } from '../inventory/inventory.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrdersService {
@@ -11,6 +12,7 @@ export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private inventoryService: InventoryService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   private generateOrderId(): string {
@@ -63,6 +65,9 @@ export class OrdersService {
 
     // Deduct stock from inventory system
     this.deductInventoryStock(order.orderId, items);
+
+    // Emit webhook event
+    this.eventEmitter.emit('order.created', { data: order, branchId });
 
     return order;
   }
@@ -186,7 +191,7 @@ export class OrdersService {
       }
     }
 
-    return this.prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id },
       data: {
         status: updateStatusDto.status,
@@ -199,6 +204,15 @@ export class OrdersService {
         },
       },
     });
+
+    // Emit webhook event
+    if (updateStatusDto.status === OrderStatus.CANCELLED) {
+      this.eventEmitter.emit('order.cancelled', { data: updatedOrder, branchId: updatedOrder.branchId });
+    } else {
+      this.eventEmitter.emit('order.status_changed', { data: updatedOrder, branchId: updatedOrder.branchId });
+    }
+
+    return updatedOrder;
   }
 
   async updateItemStatus(orderId: number, itemId: number, status: string) {
