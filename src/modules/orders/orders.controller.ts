@@ -15,7 +15,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
+import { CreateOrderDto, UpdateOrderStatusDto, SplitOrderDto } from './dto';
 import { OrderStatus } from '@prisma/client';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
 
@@ -79,6 +79,18 @@ export class OrdersController {
   @ApiResponse({ status: 404, description: 'Order not found' })
   findByOrderId(@Param('orderId') orderId: string) {
     return this.ordersService.findByOrderId(orderId);
+  }
+
+  @Post(':id/split')
+  @ApiOperation({ summary: 'Split an order into multiple sub-orders' })
+  @ApiResponse({ status: 201, description: 'Order split successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid split request' })
+  splitOrder(
+    @BranchId() branchId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() splitOrderDto: SplitOrderDto,
+  ) {
+    return this.ordersService.splitOrder(id, splitOrderDto, branchId);
   }
 
   @Patch(':id/status')

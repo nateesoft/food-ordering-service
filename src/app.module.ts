@@ -15,6 +15,7 @@ import { StaffModule } from './modules/staff/staff.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ShiftsModule } from './modules/shifts/shifts.module';
     StaffModule,
     PaymentsModule,
     ShiftsModule,
+    PromotionsModule,
   ],
   controllers: [],
   providers: [],

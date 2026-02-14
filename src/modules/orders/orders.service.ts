@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
+import { CreateOrderDto, UpdateOrderStatusDto, SplitOrderDto } from './dto';
 import { OrderStatus } from '@prisma/client';
 import { InventoryService } from '../inventory/inventory.service';
 
@@ -288,5 +288,115 @@ export class OrdersService {
         createdAt: 'desc',
       },
     });
+  }
+
+  async splitOrder(orderId: number, dto: SplitOrderDto, branchId?: number) {
+    // 1. Fetch the original order
+    const original = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: { include: { menuItem: true } },
+        payments: true,
+      },
+    });
+
+    if (!original) {
+      throw new NotFoundException(`Order with ID ${orderId} not found`);
+    }
+
+    if (original.status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('Cannot split a cancelled order');
+    }
+
+    const existingPaid = original.payments.find(
+      (p) => p.paymentStatus === 'PAID',
+    );
+    if (existingPaid) {
+      throw new BadRequestException('Cannot split an already paid order');
+    }
+
+    // 2. Validate item IDs
+    const allItemIds = dto.groups.flatMap((g) => g.itemIds);
+    const orderItemIds = original.items.map((i) => i.id);
+
+    for (const itemId of allItemIds) {
+      if (!orderItemIds.includes(itemId)) {
+        throw new BadRequestException(
+          `Item ${itemId} does not belong to order ${orderId}`,
+        );
+      }
+    }
+
+    if (new Set(allItemIds).size !== allItemIds.length) {
+      throw new BadRequestException('Duplicate item IDs across groups');
+    }
+
+    if (allItemIds.length !== orderItemIds.length) {
+      throw new BadRequestException(
+        'All items must be assigned to a group',
+      );
+    }
+
+    // 3. Create new orders in transaction
+    const itemMap = new Map(original.items.map((i) => [i.id, i]));
+
+    const newOrders = await this.prisma.$transaction(async (tx) => {
+      const results: any[] = [];
+
+      for (const group of dto.groups) {
+        const groupItems = group.itemIds.map((id) => itemMap.get(id)!);
+        const totalAmount = groupItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0,
+        );
+        const totalItems = groupItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0,
+        );
+
+        const newOrder = await tx.order.create({
+          data: {
+            orderId: this.generateOrderId(),
+            totalAmount,
+            totalItems,
+            status: original.status,
+            tableNumber: original.tableNumber,
+            branchId: original.branchId,
+            splitFromOrderId: original.id,
+            items: {
+              create: groupItems.map((item) => ({
+                menuItemId: item.menuItemId,
+                quantity: item.quantity,
+                price: item.price,
+                specialInstructions: item.specialInstructions,
+                diningOption: item.diningOption,
+                status: item.status,
+                selectedAddOns: item.selectedAddOns ?? undefined,
+                selectedAddOnGroups: item.selectedAddOnGroups ?? undefined,
+                selectedNestedOptions:
+                  item.selectedNestedOptions ?? undefined,
+              })),
+            },
+          },
+          include: {
+            items: { include: { menuItem: true } },
+          },
+        });
+        results.push(newOrder);
+      }
+
+      // Cancel original order directly (no stock restore - items just moved)
+      await tx.order.update({
+        where: { id: original.id },
+        data: { status: OrderStatus.CANCELLED },
+      });
+
+      return results;
+    });
+
+    return {
+      originalOrderId: original.orderId,
+      splitOrders: newOrders,
+    };
   }
 }

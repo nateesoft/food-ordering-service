@@ -28,6 +28,7 @@ model Branch {
   addOnGroups     AddOnGroup[]
   users           User[]
   shifts          Shift[]
+  promotions      Promotion[]
 }
 
 model MenuItem {
@@ -179,20 +180,24 @@ model NestedMenuConfigOption {
 
 model Order {
   @@schema("food_ordering")
-  id          Int         @id @default(autoincrement())
-  orderId     String      @unique
-  totalAmount Float
-  totalItems  Int
-  status      OrderStatus @default(PREPARING)
-  tableNumber String?
-  branchId    Int?
-  branch      Branch?     @relation(fields: [branchId], references: [id])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  items       OrderItem[]
-  payments    Payment[]
+  id               Int         @id @default(autoincrement())
+  orderId          String      @unique
+  totalAmount      Float
+  totalItems       Int
+  status           OrderStatus @default(PREPARING)
+  tableNumber      String?
+  splitFromOrderId Int?
+  splitFromOrder   Order?      @relation("OrderSplit", fields: [splitFromOrderId], references: [id])
+  splitOrders      Order[]     @relation("OrderSplit")
+  branchId         Int?
+  branch           Branch?     @relation(fields: [branchId], references: [id])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+  payments         Payment[]
 
   @@index([branchId])
+  @@index([splitFromOrderId])
 }
 
 model OrderItem {
@@ -449,6 +454,21 @@ enum ShiftStatus {
   CLOSED
 }
 
+enum PromotionType {
+  @@schema("food_ordering")
+  PERCENTAGE
+  FIXED_AMOUNT
+  COUPON
+  HAPPY_HOUR
+}
+
+enum PromotionStatus {
+  @@schema("food_ordering")
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
 enum PaymentMethod {
   @@schema("food_ordering")
   CASH
@@ -485,16 +505,23 @@ model Payment {
   paidAt         DateTime?
   branchId       Int?
   branch         Branch?       @relation(fields: [branchId], references: [id])
-  shiftId        Int?
-  shift          Shift?        @relation(fields: [shiftId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  shiftId           Int?
+  shift             Shift?        @relation(fields: [shiftId], references: [id])
+  promotionId       Int?
+  promotion         Promotion?    @relation(fields: [promotionId], references: [id])
+  promotionDiscount Float         @default(0)
+  promotionName     String?
+  couponCode        String?
+  mergedOrderIds    Int[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@index([orderId])
   @@index([paymentStatus])
   @@index([createdAt])
   @@index([branchId])
   @@index([shiftId])
+  @@index([promotionId])
 }
 
 model Shift {
@@ -528,4 +555,34 @@ model Shift {
   @@index([branchId])
   @@index([status])
   @@index([openedAt])
+}
+
+model Promotion {
+  @@schema("food_ordering")
+  id             Int             @id @default(autoincrement())
+  name           String
+  description    String?
+  type           PromotionType
+  status         PromotionStatus @default(ACTIVE)
+  discountValue  Float
+  maxDiscount    Float?
+  couponCode     String?         @unique
+  startDate      DateTime
+  endDate        DateTime
+  startTime      String?
+  endTime        String?
+  minOrderAmount Float?
+  categories     String[]
+  maxUses        Int?
+  currentUses    Int             @default(0)
+  branchId       Int?
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  payments       Payment[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([branchId])
+  @@index([type])
+  @@index([status])
+  @@index([startDate, endDate])
 }

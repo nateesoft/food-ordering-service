@@ -1,11 +1,23 @@
-import { IsNumber, IsOptional, IsString, IsEnum } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsEnum,
+  ArrayMinSize,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 
-export class CreatePaymentDto {
-  @ApiProperty({ example: 1 })
-  @IsNumber()
-  orderId: number;
+export class CreateMergedPaymentDto {
+  @ApiProperty({
+    example: [1, 2, 3],
+    description: 'Array of order IDs to merge into one bill',
+  })
+  @IsArray()
+  @ArrayMinSize(2)
+  @IsNumber({}, { each: true })
+  orderIds: number[];
 
   @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
   @IsEnum(PaymentMethod)
@@ -15,7 +27,7 @@ export class CreatePaymentDto {
   @IsNumber()
   paidAmount: number;
 
-  @ApiPropertyOptional({ example: 'M1ABC2DEF' })
+  @ApiPropertyOptional({ example: 'M001' })
   @IsString()
   @IsOptional()
   memberId?: string;
@@ -25,12 +37,12 @@ export class CreatePaymentDto {
   @IsOptional()
   discountPoints?: number;
 
-  @ApiPropertyOptional({ example: 'สมชาย' })
+  @ApiPropertyOptional({ example: 'John' })
   @IsString()
   @IsOptional()
   cashierName?: string;
 
-  @ApiPropertyOptional({ example: 'ลูกค้าขอใบกำกับภาษี' })
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   note?: string;
@@ -45,7 +57,10 @@ export class CreatePaymentDto {
   @IsOptional()
   promotionId?: number;
 
-  @ApiPropertyOptional({ example: 'WELCOME50', description: 'Coupon code to apply' })
+  @ApiPropertyOptional({
+    example: 'WELCOME50',
+    description: 'Coupon code to apply',
+  })
   @IsString()
   @IsOptional()
   couponCode?: string;
