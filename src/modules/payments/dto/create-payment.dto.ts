@@ -49,4 +49,14 @@ export class CreatePaymentDto {
   @IsString()
   @IsOptional()
   couponCode?: string;
+
+  @ApiPropertyOptional({ example: 35, description: 'Service charge amount' })
+  @IsNumber()
+  @IsOptional()
+  serviceCharge?: number;
+
+  @ApiPropertyOptional({ example: 26.95, description: 'VAT amount' })
+  @IsNumber()
+  @IsOptional()
+  vat?: number;
 }

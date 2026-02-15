@@ -160,6 +160,8 @@ export class PaymentsService {
         paymentMethod: dto.paymentMethod,
         paymentStatus: PaymentStatus.PAID,
         subtotal,
+        serviceCharge: dto.serviceCharge ?? 0,
+        vat: dto.vat ?? 0,
         discountAmount,
         discountPoints,
         totalAmount,

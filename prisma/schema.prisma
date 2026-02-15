@@ -30,6 +30,7 @@ model Branch {
   shifts          Shift[]
   promotions      Promotion[]
   webhooks        WebhookEndpoint[]
+  tableSessions   TableSession[]
 }
 
 model MenuItem {
@@ -185,8 +186,11 @@ model Order {
   orderId          String      @unique
   totalAmount      Float
   totalItems       Int
+  serviceCharge    Float       @default(0)
+  vat              Float       @default(0)
   status           OrderStatus @default(PREPARING)
   tableNumber      String?
+  sessionId        Int?
   splitFromOrderId Int?
   splitFromOrder   Order?      @relation("OrderSplit", fields: [splitFromOrderId], references: [id])
   splitOrders      Order[]     @relation("OrderSplit")
@@ -255,11 +259,13 @@ model Table {
   positionY     Float
   currentGuests Int?
   mergedWith    Int[]
+  zone          String?
   branchId      Int?
   branch        Branch?     @relation(fields: [branchId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   staffAssignments TableStaffAssignment[]
+  sessions      TableSession[]
 
   @@index([branchId])
 }
@@ -355,6 +361,8 @@ enum TableStatus {
   AVAILABLE
   OCCUPIED
   RESERVED
+  BILLING
+  CLEANING
 }
 
 enum ServiceRequestType {
@@ -493,6 +501,8 @@ model Payment {
   paymentMethod  PaymentMethod
   paymentStatus  PaymentStatus @default(PENDING)
   subtotal       Float
+  serviceCharge  Float         @default(0)
+  vat            Float         @default(0)
   discountAmount Float         @default(0)
   discountPoints Int           @default(0)
   totalAmount    Float
@@ -642,4 +652,25 @@ model WebhookDelivery {
   @@index([event])
   @@index([createdAt])
   @@index([success])
+}
+
+model TableSession {
+  @@schema("food_ordering")
+  id                  Int       @id @default(autoincrement())
+  tableId             Int
+  table               Table     @relation(fields: [tableId], references: [id])
+  openedBy            String
+  customerCount       Int       @default(1)
+  customerGender      String?
+  customerNationality String?
+  orderType           String    @default("dine_in")
+  status              String    @default("OPEN")
+  openedAt            DateTime  @default(now())
+  closedAt            DateTime?
+  branchId            Int?
+  branch              Branch?   @relation(fields: [branchId], references: [id])
+
+  @@index([tableId])
+  @@index([status])
+  @@index([branchId])
 }
