@@ -10,6 +10,7 @@ import { PromotionsService } from '../promotions/promotions.service';
 import { CreatePaymentDto, CreateMergedPaymentDto } from './dto';
 import { PaymentStatus, PaymentMethod } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +19,7 @@ export class PaymentsService {
     private membersService: MembersService,
     private promotionsService: PromotionsService,
     private eventEmitter: EventEmitter2,
+    private auditService: AuditService,
   ) {}
 
   private async generateReceiptNumber(branchId?: number): Promise<string> {
@@ -207,6 +209,35 @@ export class PaymentsService {
 
     // Emit webhook event
     this.eventEmitter.emit('payment.completed', { data: payment, branchId });
+
+    // Audit log
+    this.auditService.log({
+      action: 'PAYMENT_CREATED',
+      entityType: 'PAYMENT',
+      entityId: payment.id,
+      entityRef: payment.receiptNumber,
+      performedBy: dto.cashierName,
+      branchId,
+      newValues: {
+        receiptNumber: payment.receiptNumber,
+        orderId: payment.orderId,
+        paymentMethod: payment.paymentMethod,
+        subtotal: payment.subtotal,
+        discountAmount: payment.discountAmount,
+        promotionDiscount: payment.promotionDiscount,
+        totalAmount: payment.totalAmount,
+        paidAmount: payment.paidAmount,
+        changeAmount: payment.changeAmount,
+      },
+      metadata: {
+        memberId: payment.memberId,
+        promotionId: payment.promotionId,
+        promotionName: payment.promotionName,
+        couponCode: payment.couponCode,
+        shiftId: payment.shiftId,
+        tableNumber: order.tableNumber,
+      },
+    });
 
     return payment;
   }
@@ -419,6 +450,29 @@ export class PaymentsService {
     // Emit webhook event
     this.eventEmitter.emit('payment.completed', { data: primaryPayment, branchId });
 
+    // Audit log
+    this.auditService.log({
+      action: 'PAYMENT_MERGED',
+      entityType: 'PAYMENT',
+      entityId: primaryPayment.id,
+      entityRef: primaryPayment.receiptNumber,
+      performedBy: dto.cashierName,
+      branchId,
+      newValues: {
+        receiptNumber: primaryPayment.receiptNumber,
+        paymentMethod: primaryPayment.paymentMethod,
+        subtotal: combinedSubtotal,
+        totalAmount: primaryPayment.totalAmount,
+        paidAmount: primaryPayment.paidAmount,
+        mergedOrderIds: dto.orderIds,
+      },
+      metadata: {
+        orderCount: dto.orderIds.length,
+        mergedOrderIds: dto.orderIds,
+        tableNumber: orders[0].tableNumber,
+      },
+    });
+
     return {
       payment: primaryPayment,
       mergedOrders: orders.map((o) => ({
@@ -621,6 +675,29 @@ export class PaymentsService {
 
     // Emit webhook event
     this.eventEmitter.emit('payment.refunded', { data: updated, branchId: updated.branchId });
+
+    // Audit log
+    this.auditService.log({
+      action: 'PAYMENT_REFUNDED',
+      entityType: 'PAYMENT',
+      entityId: updated.id,
+      entityRef: updated.receiptNumber,
+      performedBy: payment.cashierName ?? undefined,
+      branchId: updated.branchId ?? undefined,
+      oldValues: {
+        paymentStatus: 'PAID',
+        totalAmount: payment.totalAmount,
+      },
+      newValues: {
+        paymentStatus: 'REFUNDED',
+      },
+      metadata: {
+        orderId: payment.orderId,
+        receiptNumber: payment.receiptNumber,
+        memberId: payment.memberId,
+        promotionId: payment.promotionId,
+      },
+    });
 
     return updated;
   }

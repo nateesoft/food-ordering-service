@@ -21,6 +21,7 @@ import { ShiftsModule } from './modules/shifts/shifts.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { UploadModule } from './modules/upload/upload.module';
     PromotionsModule,
     WebhooksModule,
     UploadModule,
+    AuditModule,
   ],
   controllers: [],
   providers: [],

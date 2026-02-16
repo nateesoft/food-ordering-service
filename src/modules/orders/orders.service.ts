@@ -4,6 +4,7 @@ import { CreateOrderDto, UpdateOrderStatusDto, SplitOrderDto } from './dto';
 import { OrderStatus } from '@prisma/client';
 import { InventoryService } from '../inventory/inventory.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class OrdersService {
@@ -13,6 +14,7 @@ export class OrdersService {
     private prisma: PrismaService,
     private inventoryService: InventoryService,
     private eventEmitter: EventEmitter2,
+    private auditService: AuditService,
   ) {}
 
   private generateOrderId(): string {
@@ -68,6 +70,27 @@ export class OrdersService {
 
     // Emit webhook event
     this.eventEmitter.emit('order.created', { data: order, branchId });
+
+    // Audit log
+    this.auditService.log({
+      action: 'ORDER_CREATED',
+      entityType: 'ORDER',
+      entityId: order.id,
+      entityRef: order.orderId,
+      branchId,
+      newValues: {
+        orderId: order.orderId,
+        totalAmount: order.totalAmount,
+        totalItems: order.totalItems,
+        tableNumber: order.tableNumber,
+        status: order.status,
+      },
+      metadata: {
+        tableNumber: order.tableNumber,
+        sessionId: createOrderDto.sessionId,
+        itemCount: order.items.length,
+      },
+    });
 
     return order;
   }
@@ -212,6 +235,18 @@ export class OrdersService {
       this.eventEmitter.emit('order.status_changed', { data: updatedOrder, branchId: updatedOrder.branchId });
     }
 
+    // Audit log
+    this.auditService.log({
+      action: updateStatusDto.status === OrderStatus.CANCELLED ? 'ORDER_CANCELLED' : 'ORDER_STATUS_CHANGED',
+      entityType: 'ORDER',
+      entityId: updatedOrder.id,
+      entityRef: updatedOrder.orderId,
+      branchId: updatedOrder.branchId ?? undefined,
+      oldValues: { status: order.status },
+      newValues: { status: updatedOrder.status },
+      metadata: { tableNumber: updatedOrder.tableNumber },
+    });
+
     return updatedOrder;
   }
 
@@ -225,10 +260,28 @@ export class OrdersService {
       );
     }
 
-    return this.prisma.orderItem.update({
+    const updated = await this.prisma.orderItem.update({
       where: { id: itemId },
       data: { status },
     });
+
+    // Audit log
+    this.auditService.log({
+      action: 'ORDER_ITEM_STATUS_CHANGED',
+      entityType: 'ORDER_ITEM',
+      entityId: itemId,
+      entityRef: order.orderId,
+      branchId: order.branchId ?? undefined,
+      oldValues: { status: item.status },
+      newValues: { status },
+      metadata: {
+        orderId: order.id,
+        orderRef: order.orderId,
+        menuItemId: item.menuItemId,
+      },
+    });
+
+    return updated;
   }
 
   async getOrdersByTable(tableNumber: string) {
@@ -406,6 +459,33 @@ export class OrdersService {
       });
 
       return results;
+    });
+
+    // Audit log
+    this.auditService.log({
+      action: 'ORDER_SPLIT',
+      entityType: 'ORDER',
+      entityId: orderId,
+      entityRef: original.orderId,
+      branchId: original.branchId ?? undefined,
+      oldValues: {
+        orderId: original.orderId,
+        totalAmount: original.totalAmount,
+        totalItems: original.totalItems,
+        status: original.status,
+      },
+      newValues: {
+        splitInto: newOrders.map((o) => ({
+          id: o.id,
+          orderId: o.orderId,
+          totalAmount: o.totalAmount,
+          totalItems: o.totalItems,
+        })),
+      },
+      metadata: {
+        tableNumber: original.tableNumber,
+        groupCount: dto.groups.length,
+      },
     });
 
     return {
