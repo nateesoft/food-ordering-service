@@ -20,6 +20,7 @@ import { ServiceRequestsService } from './service-requests.service';
 import { CreateServiceRequestDto, UpdateServiceRequestDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ServiceRequestStatus, ServiceRequestType } from '@prisma/client';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Service Requests')
 @Controller('service-requests')
@@ -31,8 +32,8 @@ export class ServiceRequestsController {
   @Post()
   @ApiOperation({ summary: 'Create new service request' })
   @ApiResponse({ status: 201, description: 'Service request created' })
-  create(@Body() createServiceRequestDto: CreateServiceRequestDto) {
-    return this.serviceRequestsService.create(createServiceRequestDto);
+  create(@BranchId() branchId: number, @Body() createServiceRequestDto: CreateServiceRequestDto) {
+    return this.serviceRequestsService.create(createServiceRequestDto, branchId);
   }
 
   @Get()
@@ -42,11 +43,12 @@ export class ServiceRequestsController {
   @ApiQuery({ name: 'tableNumber', required: false })
   @ApiResponse({ status: 200, description: 'List of service requests' })
   findAll(
+    @BranchId() branchId: number,
     @Query('status') status?: ServiceRequestStatus,
     @Query('type') type?: ServiceRequestType,
     @Query('tableNumber') tableNumber?: string,
   ) {
-    return this.serviceRequestsService.findAll(status, type, tableNumber);
+    return this.serviceRequestsService.findAll(status, type, tableNumber, branchId);
   }
 
   @Get('pending')
@@ -55,15 +57,15 @@ export class ServiceRequestsController {
     status: 200,
     description: 'List of pending service requests',
   })
-  getPendingRequests() {
-    return this.serviceRequestsService.getPendingRequests();
+  getPendingRequests(@BranchId() branchId: number) {
+    return this.serviceRequestsService.getPendingRequests(branchId);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get service request statistics' })
   @ApiResponse({ status: 200, description: 'Service request statistics' })
-  getRequestStats() {
-    return this.serviceRequestsService.getRequestStats();
+  getRequestStats(@BranchId() branchId: number) {
+    return this.serviceRequestsService.getRequestStats(branchId);
   }
 
   @Get('table/:tableNumber')

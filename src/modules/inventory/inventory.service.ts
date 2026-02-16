@@ -21,12 +21,15 @@ export class InventoryService {
 
   // ===== INGREDIENT CRUD =====
 
-  async createIngredient(dto: CreateIngredientDto) {
-    return this.prisma.ingredient.create({ data: dto });
+  async createIngredient(dto: CreateIngredientDto, branchId?: number) {
+    return this.prisma.ingredient.create({ data: { ...dto, branchId } });
   }
 
-  async findAllIngredients(isActive?: boolean) {
+  async findAllIngredients(isActive?: boolean, branchId?: number) {
     const where: any = {};
+    if (branchId) {
+      where.branchId = branchId;
+    }
     if (isActive !== undefined) {
       where.isActive = isActive;
     }
@@ -375,21 +378,25 @@ export class InventoryService {
 
   // ===== ALERTS & MONITORING =====
 
-  async getLowStockAlerts() {
+  async getLowStockAlerts(branchId?: number) {
     // Prisma doesn't support field-to-field comparison, use raw query
-    const alerts = await this.prisma.$queryRaw<any[]>`
+    const branchCondition = branchId ? `AND "branchId" = ${branchId}` : '';
+    const alerts = await this.prisma.$queryRawUnsafe<any[]>(`
       SELECT id, name, unit, "currentStock", "minStock", "costPerUnit", "isActive",
              "minStock" - "currentStock" as deficit
       FROM food_ordering."Ingredient"
-      WHERE "currentStock" <= "minStock" AND "isActive" = true
+      WHERE "currentStock" <= "minStock" AND "isActive" = true ${branchCondition}
       ORDER BY ("minStock" - "currentStock") DESC
-    `;
+    `);
     return alerts;
   }
 
-  async getMenuAvailability() {
+  async getMenuAvailability(branchId?: number) {
+    const where: any = { isActive: true };
+    if (branchId) where.branchId = branchId;
+
     const menuItems = await this.prisma.menuItem.findMany({
-      where: { isActive: true },
+      where,
       select: {
         id: true,
         name: true,
@@ -420,9 +427,12 @@ export class InventoryService {
     });
   }
 
-  async getStockOverview() {
+  async getStockOverview(branchId?: number) {
+    const where: any = { isActive: true };
+    if (branchId) where.branchId = branchId;
+
     const ingredients = await this.prisma.ingredient.findMany({
-      where: { isActive: true },
+      where,
       orderBy: { name: 'asc' },
     });
 

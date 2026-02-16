@@ -23,6 +23,7 @@ import {
   AdjustStockDto,
 } from './dto';
 import { TransactionType } from '@prisma/client';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Inventory')
 @Controller('inventory')
@@ -34,17 +35,17 @@ export class InventoryController {
   @Post('ingredients')
   @ApiOperation({ summary: 'Create ingredient' })
   @ApiResponse({ status: 201, description: 'Ingredient created' })
-  createIngredient(@Body() dto: CreateIngredientDto) {
-    return this.inventoryService.createIngredient(dto);
+  createIngredient(@BranchId() branchId: number, @Body() dto: CreateIngredientDto) {
+    return this.inventoryService.createIngredient(dto, branchId);
   }
 
   @Get('ingredients')
   @ApiOperation({ summary: 'Get all ingredients' })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of ingredients' })
-  findAllIngredients(@Query('isActive') isActive?: string) {
+  findAllIngredients(@BranchId() branchId: number, @Query('isActive') isActive?: string) {
     const active = isActive !== undefined ? isActive === 'true' : undefined;
-    return this.inventoryService.findAllIngredients(active);
+    return this.inventoryService.findAllIngredients(active, branchId);
   }
 
   @Get('ingredients/:id')
@@ -115,22 +116,22 @@ export class InventoryController {
   @Get('alerts/low-stock')
   @ApiOperation({ summary: 'Get low stock alerts' })
   @ApiResponse({ status: 200, description: 'Low stock ingredients' })
-  getLowStockAlerts() {
-    return this.inventoryService.getLowStockAlerts();
+  getLowStockAlerts(@BranchId() branchId: number) {
+    return this.inventoryService.getLowStockAlerts(branchId);
   }
 
   @Get('menu-availability')
   @ApiOperation({ summary: 'Get menu item availability based on stock' })
   @ApiResponse({ status: 200, description: 'Menu availability list' })
-  getMenuAvailability() {
-    return this.inventoryService.getMenuAvailability();
+  getMenuAvailability(@BranchId() branchId: number) {
+    return this.inventoryService.getMenuAvailability(branchId);
   }
 
   @Get('stock-overview')
   @ApiOperation({ summary: 'Get stock overview' })
   @ApiResponse({ status: 200, description: 'Stock overview data' })
-  getStockOverview() {
-    return this.inventoryService.getStockOverview();
+  getStockOverview(@BranchId() branchId: number) {
+    return this.inventoryService.getStockOverview(branchId);
   }
 
   // ===== TRANSACTIONS =====

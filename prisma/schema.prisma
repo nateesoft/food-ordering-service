@@ -7,6 +7,32 @@ datasource db {
   schemas  = ["food_ordering"]
 }
 
+model Branch {
+  @@schema("food_ordering")
+  id              Int              @id @default(autoincrement())
+  name            String
+  code            String           @unique
+  address         String?
+  phone           String?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  menuItems       MenuItem[]
+  orders          Order[]
+  queueTickets    QueueTicket[]
+  tables          Table[]
+  serviceRequests ServiceRequest[]
+  ingredients     Ingredient[]
+  payments        Payment[]
+  addOns          AddOn[]
+  addOnGroups     AddOnGroup[]
+  users           User[]
+  shifts          Shift[]
+  promotions      Promotion[]
+  webhooks        WebhookEndpoint[]
+  tableSessions   TableSession[]
+}
+
 model MenuItem {
   @@schema("food_ordering")
   id                   Int                  @id @default(autoincrement())
@@ -19,6 +45,8 @@ model MenuItem {
   reviewCount          Int                  @default(0)
   type                 MenuType             @default(SINGLE)
   isActive             Boolean              @default(true)
+  branchId             Int?
+  branch               Branch?              @relation(fields: [branchId], references: [id])
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   availableAddOns      MenuItemAddOn[]
@@ -27,6 +55,8 @@ model MenuItem {
   orderItems           OrderItem[]
   setComponents        SetComponent[]
   ingredients          MenuItemIngredient[]
+
+  @@index([branchId])
 }
 
 model SetComponent {
@@ -46,10 +76,14 @@ model AddOn {
   price     Float
   category  String
   isActive  Boolean          @default(true)
+  branchId  Int?
+  branch    Branch?          @relation(fields: [branchId], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   groups    AddOnGroupItem[]
   menuItems MenuItemAddOn[]
+
+  @@index([branchId])
 }
 
 model AddOnGroup {
@@ -61,10 +95,14 @@ model AddOnGroup {
   category    String
   image       String?
   isActive    Boolean              @default(true)
+  branchId    Int?
+  branch      Branch?              @relation(fields: [branchId], references: [id])
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
   items       AddOnGroupItem[]
   menuItems   MenuItemAddOnGroup[]
+
+  @@index([branchId])
 }
 
 model AddOnGroupItem {
@@ -144,16 +182,27 @@ model NestedMenuConfigOption {
 
 model Order {
   @@schema("food_ordering")
-  id          Int         @id @default(autoincrement())
-  orderId     String      @unique
-  totalAmount Float
-  totalItems  Int
-  status      OrderStatus @default(PREPARING)
-  tableNumber String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  items       OrderItem[]
-  payments    Payment[]
+  id               Int         @id @default(autoincrement())
+  orderId          String      @unique
+  totalAmount      Float
+  totalItems       Int
+  serviceCharge    Float       @default(0)
+  vat              Float       @default(0)
+  status           OrderStatus @default(PREPARING)
+  tableNumber      String?
+  sessionId        Int?
+  splitFromOrderId Int?
+  splitFromOrder   Order?      @relation("OrderSplit", fields: [splitFromOrderId], references: [id])
+  splitOrders      Order[]     @relation("OrderSplit")
+  branchId         Int?
+  branch           Branch?     @relation(fields: [branchId], references: [id])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+  payments         Payment[]
+
+  @@index([branchId])
+  @@index([splitFromOrderId])
 }
 
 model OrderItem {
@@ -191,8 +240,12 @@ model QueueTicket {
   items         Json
   calledAt      DateTime?
   completedAt   DateTime?
+  branchId      Int?
+  branch        Branch?     @relation(fields: [branchId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@index([branchId])
 }
 
 model Table {
@@ -202,13 +255,20 @@ model Table {
   capacity      Int
   status        TableStatus @default(AVAILABLE)
   size          String
+  shape         String      @default("square")
   positionX     Float
   positionY     Float
   currentGuests Int?
   mergedWith    Int[]
+  zone          String?
+  branchId      Int?
+  branch        Branch?     @relation(fields: [branchId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   staffAssignments TableStaffAssignment[]
+  sessions      TableSession[]
+
+  @@index([branchId])
 }
 
 model ServiceRequest {
@@ -220,8 +280,12 @@ model ServiceRequest {
   details     String?
   items       String[]
   status      ServiceRequestStatus @default(PENDING)
+  branchId    Int?
+  branch      Branch?              @relation(fields: [branchId], references: [id])
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
+
+  @@index([branchId])
 }
 
 model Member {
@@ -246,9 +310,13 @@ model User {
   role                 UserRole               @default(STAFF)
   name                 String
   isActive             Boolean                @default(true)
+  branchId             Int?
+  branch               Branch?                @relation(fields: [branchId], references: [id])
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   tableStaffAssignments TableStaffAssignment[]
+
+  @@index([branchId])
 }
 
 model TableStaffAssignment {
@@ -294,6 +362,8 @@ enum TableStatus {
   AVAILABLE
   OCCUPIED
   RESERVED
+  BILLING
+  CLEANING
 }
 
 enum ServiceRequestType {
@@ -339,16 +409,21 @@ enum TransactionType {
 model Ingredient {
   @@schema("food_ordering")
   id           Int                    @id @default(autoincrement())
-  name         String                 @unique
+  name         String
   unit         IngredientUnit
   currentStock Float                  @default(0)
   minStock     Float                  @default(0)
   costPerUnit  Float?
   isActive     Boolean                @default(true)
+  branchId     Int?
+  branch       Branch?                @relation(fields: [branchId], references: [id])
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
   recipes      MenuItemIngredient[]
   transactions InventoryTransaction[]
+
+  @@unique([name, branchId])
+  @@index([branchId])
 }
 
 model MenuItemIngredient {
@@ -383,6 +458,27 @@ model InventoryTransaction {
   @@index([orderId])
 }
 
+enum ShiftStatus {
+  @@schema("food_ordering")
+  OPEN
+  CLOSED
+}
+
+enum PromotionType {
+  @@schema("food_ordering")
+  PERCENTAGE
+  FIXED_AMOUNT
+  COUPON
+  HAPPY_HOUR
+}
+
+enum PromotionStatus {
+  @@schema("food_ordering")
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
 enum PaymentMethod {
   @@schema("food_ordering")
   CASH
@@ -406,6 +502,8 @@ model Payment {
   paymentMethod  PaymentMethod
   paymentStatus  PaymentStatus @default(PENDING)
   subtotal       Float
+  serviceCharge  Float         @default(0)
+  vat            Float         @default(0)
   discountAmount Float         @default(0)
   discountPoints Int           @default(0)
   totalAmount    Float
@@ -417,10 +515,163 @@ model Payment {
   cashierName    String?
   note           String?
   paidAt         DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  branchId       Int?
+  branch         Branch?       @relation(fields: [branchId], references: [id])
+  shiftId           Int?
+  shift             Shift?        @relation(fields: [shiftId], references: [id])
+  promotionId       Int?
+  promotion         Promotion?    @relation(fields: [promotionId], references: [id])
+  promotionDiscount Float         @default(0)
+  promotionName     String?
+  couponCode        String?
+  mergedOrderIds    Int[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@index([orderId])
   @@index([paymentStatus])
   @@index([createdAt])
+  @@index([branchId])
+  @@index([shiftId])
+  @@index([promotionId])
+}
+
+model Shift {
+  @@schema("food_ordering")
+  id                 Int         @id @default(autoincrement())
+  shiftNumber        String      @unique
+  status             ShiftStatus @default(OPEN)
+  userId             Int
+  cashierName        String
+  branchId           Int?
+  branch             Branch?     @relation(fields: [branchId], references: [id])
+  openedAt           DateTime    @default(now())
+  closedAt           DateTime?
+  openingAmount      Float       @default(0)
+  closingAmount      Float?
+  expectedCashAmount Float?
+  cashDifference     Float?
+  totalRevenue       Float?
+  totalOrders        Int?
+  cashTotal          Float?
+  transferTotal      Float?
+  creditCardTotal    Float?
+  openingCashCount   Json?
+  closingCashCount   Json?
+  notes              String?
+  closingNotes       String?
+  payments           Payment[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([branchId])
+  @@index([status])
+  @@index([openedAt])
+}
+
+model Promotion {
+  @@schema("food_ordering")
+  id             Int             @id @default(autoincrement())
+  name           String
+  description    String?
+  type           PromotionType
+  status         PromotionStatus @default(ACTIVE)
+  discountValue  Float
+  maxDiscount    Float?
+  couponCode     String?         @unique
+  startDate      DateTime
+  endDate        DateTime
+  startTime      String?
+  endTime        String?
+  minOrderAmount Float?
+  categories     String[]
+  maxUses        Int?
+  currentUses    Int             @default(0)
+  branchId       Int?
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  payments       Payment[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([branchId])
+  @@index([type])
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+enum WebhookEvent {
+  @@schema("food_ordering")
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  ORDER_CANCELLED
+  PAYMENT_COMPLETED
+  PAYMENT_REFUNDED
+  QUEUE_CREATED
+  QUEUE_STATUS_CHANGED
+  MEMBER_REGISTERED
+  SHIFT_OPENED
+  SHIFT_CLOSED
+  LOW_STOCK_ALERT
+}
+
+model WebhookEndpoint {
+  @@schema("food_ordering")
+  id          Int               @id @default(autoincrement())
+  name        String
+  url         String
+  secret      String
+  events      WebhookEvent[]
+  isActive    Boolean           @default(true)
+  branchId    Int?
+  branch      Branch?           @relation(fields: [branchId], references: [id])
+  headers     Json?
+  description String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deliveries  WebhookDelivery[]
+
+  @@index([branchId])
+  @@index([isActive])
+}
+
+model WebhookDelivery {
+  @@schema("food_ordering")
+  id              Int              @id @default(autoincrement())
+  webhookId       Int
+  webhook         WebhookEndpoint  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event           WebhookEvent
+  payload         Json
+  responseStatus  Int?
+  responseBody    String?
+  success         Boolean          @default(false)
+  attempts        Int              @default(1)
+  error           String?
+  duration        Int?
+  createdAt       DateTime         @default(now())
+
+  @@index([webhookId])
+  @@index([event])
+  @@index([createdAt])
+  @@index([success])
+}
+
+model TableSession {
+  @@schema("food_ordering")
+  id                  Int       @id @default(autoincrement())
+  tableId             Int
+  table               Table     @relation(fields: [tableId], references: [id])
+  openedBy            String
+  customerCount       Int       @default(1)
+  customerGender      String?
+  customerNationality String?
+  orderType           String    @default("dine_in")
+  status              String    @default("OPEN")
+  openedAt            DateTime  @default(now())
+  closedAt            DateTime?
+  branchId            Int?
+  branch              Branch?   @relation(fields: [branchId], references: [id])
+
+  @@index([tableId])
+  @@index([status])
+  @@index([branchId])
 }

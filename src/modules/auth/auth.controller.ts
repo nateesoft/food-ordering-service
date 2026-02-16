@@ -21,6 +21,7 @@ import { LoginDto, RegisterDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -58,8 +59,8 @@ export class AuthController {
   @Get('users')
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'List of users' })
-  async findAllUsers() {
-    return this.authService.findAllUsers();
+  async findAllUsers(@BranchId() branchId: number) {
+    return this.authService.findAllUsers(branchId);
   }
 
   @Get('users/:id')

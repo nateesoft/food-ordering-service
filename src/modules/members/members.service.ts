@@ -5,10 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateMemberDto, UpdateMemberDto } from './dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class MembersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   private generateMemberId(): string {
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -23,12 +27,16 @@ export class MembersService {
   }
 
   async create(createMemberDto: CreateMemberDto) {
-    return this.prisma.member.create({
+    const member = await this.prisma.member.create({
       data: {
         ...createMemberDto,
         memberId: this.generateMemberId(),
       },
     });
+
+    this.eventEmitter.emit('member.registered', { data: member });
+
+    return member;
   }
 
   async findAll(tier?: string) {

@@ -58,6 +58,21 @@ export class CreateOrderDto {
   @IsOptional()
   tableNumber?: string;
 
+  @ApiPropertyOptional({ example: 35, description: 'Service charge amount' })
+  @IsNumber()
+  @IsOptional()
+  serviceCharge?: number;
+
+  @ApiPropertyOptional({ example: 26.95, description: 'VAT amount' })
+  @IsNumber()
+  @IsOptional()
+  vat?: number;
+
+  @ApiPropertyOptional({ example: 1, description: 'Table session ID' })
+  @IsNumber()
+  @IsOptional()
+  sessionId?: number;
+
   @ApiProperty({ type: [OrderItemDto] })
   @IsArray()
   @ValidateNested({ each: true })

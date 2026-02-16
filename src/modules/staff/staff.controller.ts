@@ -18,6 +18,7 @@ import {
 import { StaffService } from './staff.service';
 import { CheckInDto, CheckOutDto, HeartbeatDto, SetPinDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Staff')
 @Controller('staff')
@@ -86,7 +87,7 @@ export class StaffController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all active staff-table assignments' })
   @ApiResponse({ status: 200, description: 'Returns all active assignments' })
-  async getAllActiveAssignments() {
-    return this.staffService.getAllActiveAssignments();
+  async getAllActiveAssignments(@BranchId() branchId: number) {
+    return this.staffService.getAllActiveAssignments(branchId);
   }
 }

@@ -13,16 +13,15 @@ export class QueueService {
     return `Q-${timestamp}-${random}`;
   }
 
-  private async getNextQueueNumber(): Promise<number> {
+  private async getNextQueueNumber(branchId?: number): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const where: any = { createdAt: { gte: today } };
+    if (branchId) where.branchId = branchId;
+
     const lastTicket = await this.prisma.queueTicket.findFirst({
-      where: {
-        createdAt: {
-          gte: today,
-        },
-      },
+      where,
       orderBy: {
         queueNumber: 'desc',
       },
@@ -31,14 +30,15 @@ export class QueueService {
     return lastTicket ? lastTicket.queueNumber + 1 : 1;
   }
 
-  async create(createQueueTicketDto: CreateQueueTicketDto) {
-    const queueNumber = await this.getNextQueueNumber();
+  async create(createQueueTicketDto: CreateQueueTicketDto, branchId?: number) {
+    const queueNumber = await this.getNextQueueNumber(branchId);
 
     const { items, ...rest } = createQueueTicketDto;
 
     const ticket = await this.prisma.queueTicket.create({
       data: {
         ...rest,
+        branchId,
         items: items as unknown as object, // Convert to JSON-compatible type
         queueId: this.generateQueueId(),
         queueNumber,
@@ -49,8 +49,12 @@ export class QueueService {
     return ticket;
   }
 
-  async findAll(status?: QueueStatus) {
+  async findAll(status?: QueueStatus, branchId?: number) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (status) {
       where.status = status;
@@ -117,52 +121,51 @@ export class QueueService {
     });
   }
 
-  async getTodayQueue() {
+  async getTodayQueue(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const where: any = { createdAt: { gte: today } };
+    if (branchId) where.branchId = branchId;
+
     return this.prisma.queueTicket.findMany({
-      where: {
-        createdAt: {
-          gte: today,
-        },
-      },
+      where,
       orderBy: {
         queueNumber: 'asc',
       },
     });
   }
 
-  async getWaitingQueue() {
+  async getWaitingQueue(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const where: any = {
+      createdAt: { gte: today },
+      status: { in: [QueueStatus.WAITING, QueueStatus.PREPARING] },
+    };
+    if (branchId) where.branchId = branchId;
+
     return this.prisma.queueTicket.findMany({
-      where: {
-        createdAt: {
-          gte: today,
-        },
-        status: {
-          in: [QueueStatus.WAITING, QueueStatus.PREPARING],
-        },
-      },
+      where,
       orderBy: {
         queueNumber: 'asc',
       },
     });
   }
 
-  async getReadyQueue() {
+  async getReadyQueue(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const where: any = {
+      createdAt: { gte: today },
+      status: QueueStatus.READY,
+    };
+    if (branchId) where.branchId = branchId;
+
     return this.prisma.queueTicket.findMany({
-      where: {
-        createdAt: {
-          gte: today,
-        },
-        status: QueueStatus.READY,
-      },
+      where,
       orderBy: {
         calledAt: 'desc',
       },
@@ -170,26 +173,27 @@ export class QueueService {
     });
   }
 
-  async getQueueStats() {
+  async getQueueStats(branchId?: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const branchFilter = branchId ? { branchId } : {};
     const [waiting, preparing, ready, completed, cancelled] = await Promise.all(
       [
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.WAITING },
+          where: { createdAt: { gte: today }, status: QueueStatus.WAITING, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.PREPARING },
+          where: { createdAt: { gte: today }, status: QueueStatus.PREPARING, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.READY },
+          where: { createdAt: { gte: today }, status: QueueStatus.READY, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.COMPLETED },
+          where: { createdAt: { gte: today }, status: QueueStatus.COMPLETED, ...branchFilter },
         }),
         this.prisma.queueTicket.count({
-          where: { createdAt: { gte: today }, status: QueueStatus.CANCELLED },
+          where: { createdAt: { gte: today }, status: QueueStatus.CANCELLED, ...branchFilter },
         }),
       ],
     );

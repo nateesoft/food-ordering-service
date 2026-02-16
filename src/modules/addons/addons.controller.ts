@@ -22,6 +22,7 @@ import { CreateAddOnDto, CreateAddOnGroupDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Add-ons')
 @Controller()
@@ -35,19 +36,20 @@ export class AddonsController {
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of add-ons' })
   findAllAddOns(
+    @BranchId() branchId: number,
     @Query('category') category?: string,
     @Query('isActive') isActive?: string,
   ) {
     const isActiveBoolean =
       isActive !== undefined ? isActive === 'true' : undefined;
-    return this.addonsService.findAllAddOns(category, isActiveBoolean);
+    return this.addonsService.findAllAddOns(category, isActiveBoolean, branchId);
   }
 
   @Get('addons/categories')
   @ApiOperation({ summary: 'Get all add-on categories' })
   @ApiResponse({ status: 200, description: 'List of categories' })
-  getAddOnCategories() {
-    return this.addonsService.getAddOnCategories();
+  getAddOnCategories(@BranchId() branchId: number) {
+    return this.addonsService.getAddOnCategories(branchId);
   }
 
   @Get('addons/:id')
@@ -64,8 +66,8 @@ export class AddonsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new add-on (Admin only)' })
   @ApiResponse({ status: 201, description: 'Add-on created' })
-  createAddOn(@Body() createAddOnDto: CreateAddOnDto) {
-    return this.addonsService.createAddOn(createAddOnDto);
+  createAddOn(@BranchId() branchId: number, @Body() createAddOnDto: CreateAddOnDto) {
+    return this.addonsService.createAddOn(createAddOnDto, branchId);
   }
 
   @Put('addons/:id')
@@ -100,12 +102,13 @@ export class AddonsController {
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of add-on groups' })
   findAllAddOnGroups(
+    @BranchId() branchId: number,
     @Query('category') category?: string,
     @Query('isActive') isActive?: string,
   ) {
     const isActiveBoolean =
       isActive !== undefined ? isActive === 'true' : undefined;
-    return this.addonsService.findAllAddOnGroups(category, isActiveBoolean);
+    return this.addonsService.findAllAddOnGroups(category, isActiveBoolean, branchId);
   }
 
   @Get('addon-groups/:id')
@@ -122,8 +125,8 @@ export class AddonsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new add-on group (Admin only)' })
   @ApiResponse({ status: 201, description: 'Add-on group created' })
-  createAddOnGroup(@Body() createAddOnGroupDto: CreateAddOnGroupDto) {
-    return this.addonsService.createAddOnGroup(createAddOnGroupDto);
+  createAddOnGroup(@BranchId() branchId: number, @Body() createAddOnGroupDto: CreateAddOnGroupDto) {
+    return this.addonsService.createAddOnGroup(createAddOnGroupDto, branchId);
   }
 
   @Put('addon-groups/:id')

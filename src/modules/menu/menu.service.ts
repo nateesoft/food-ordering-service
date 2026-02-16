@@ -6,8 +6,12 @@ import { CreateMenuItemDto, UpdateMenuItemDto } from './dto';
 export class MenuService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(category?: string, isActive?: boolean) {
+  async findAll(category?: string, isActive?: boolean, branchId?: number) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (category) {
       where.category = category;
@@ -113,13 +117,14 @@ export class MenuService {
     return menuItem;
   }
 
-  async create(createMenuItemDto: CreateMenuItemDto) {
+  async create(createMenuItemDto: CreateMenuItemDto, branchId?: number) {
     const { setComponents, addOnIds, addOnGroupIds, ...data } =
       createMenuItemDto;
 
     return this.prisma.menuItem.create({
       data: {
         ...data,
+        branchId,
         setComponents: setComponents
           ? {
               create: setComponents,
@@ -232,9 +237,12 @@ export class MenuService {
     });
   }
 
-  async getCategories() {
+  async getCategories(branchId?: number) {
+    const where: any = { isActive: true };
+    if (branchId) where.branchId = branchId;
+
     const items = await this.prisma.menuItem.findMany({
-      where: { isActive: true },
+      where,
       select: { category: true },
       distinct: ['category'],
     });

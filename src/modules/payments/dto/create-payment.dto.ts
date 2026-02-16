@@ -34,4 +34,29 @@ export class CreatePaymentDto {
   @IsString()
   @IsOptional()
   note?: string;
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsNumber()
+  @IsOptional()
+  shiftId?: number;
+
+  @ApiPropertyOptional({ example: 1, description: 'Promotion ID to apply' })
+  @IsNumber()
+  @IsOptional()
+  promotionId?: number;
+
+  @ApiPropertyOptional({ example: 'WELCOME50', description: 'Coupon code to apply' })
+  @IsString()
+  @IsOptional()
+  couponCode?: string;
+
+  @ApiPropertyOptional({ example: 35, description: 'Service charge amount' })
+  @IsNumber()
+  @IsOptional()
+  serviceCharge?: number;
+
+  @ApiPropertyOptional({ example: 26.95, description: 'VAT amount' })
+  @IsNumber()
+  @IsOptional()
+  vat?: number;
 }
