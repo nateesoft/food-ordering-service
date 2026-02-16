@@ -255,6 +255,7 @@ model Table {
   capacity      Int
   status        TableStatus @default(AVAILABLE)
   size          String
+  shape         String      @default("square")
   positionX     Float
   positionY     Float
   currentGuests Int?

@@ -252,6 +252,17 @@ export class TablesService {
     return session;
   }
 
+  async bulkUpdatePositions(updates: { id: number; positionX: number; positionY: number }[]) {
+    return Promise.all(
+      updates.map(({ id, positionX, positionY }) =>
+        this.prisma.table.update({
+          where: { id },
+          data: { positionX, positionY },
+        }),
+      ),
+    );
+  }
+
   async getZones(branchId?: number) {
     const where: any = { zone: { not: null } };
     if (branchId) where.branchId = branchId;

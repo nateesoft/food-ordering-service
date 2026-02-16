@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MenuModule } from './modules/menu/menu.module';
@@ -18,6 +20,7 @@ import { BranchModule } from './modules/branch/branch.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -25,6 +28,13 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
       isGlobal: true,
     }),
     EventEmitterModule.forRoot(),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public', 'uploads'),
+      serveRoot: '/uploads',
+      serveStaticOptions: {
+        index: false,
+      },
+    }),
     PrismaModule,
     BranchModule,
     AuthModule,
@@ -42,6 +52,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ShiftsModule,
     PromotionsModule,
     WebhooksModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],

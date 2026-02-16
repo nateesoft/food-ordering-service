@@ -65,6 +65,15 @@ export class TablesController {
     return this.tablesService.getZones(branchId);
   }
 
+  @Patch('bulk-positions')
+  @ApiOperation({ summary: 'Bulk update table positions (Admin)' })
+  @ApiResponse({ status: 200, description: 'Positions updated' })
+  bulkUpdatePositions(
+    @Body() updates: { id: number; positionX: number; positionY: number }[],
+  ) {
+    return this.tablesService.bulkUpdatePositions(updates);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get table by ID' })
   @ApiResponse({ status: 200, description: 'Table details' })

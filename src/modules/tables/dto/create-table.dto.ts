@@ -21,6 +21,11 @@ export class CreateTableDto {
   @IsString()
   size: string;
 
+  @ApiPropertyOptional({ example: 'square', enum: ['square', 'circle', 'rectangle', 'counter'] })
+  @IsString()
+  @IsOptional()
+  shape?: string;
+
   @ApiProperty({ example: 100 })
   @IsNumber()
   positionX: number;
@@ -28,6 +33,11 @@ export class CreateTableDto {
   @ApiProperty({ example: 200 })
   @IsNumber()
   positionY: number;
+
+  @ApiPropertyOptional({ example: 'Zone A' })
+  @IsString()
+  @IsOptional()
+  zone?: string;
 
   @ApiPropertyOptional({ enum: TableStatus, default: TableStatus.AVAILABLE })
   @IsEnum(TableStatus)
