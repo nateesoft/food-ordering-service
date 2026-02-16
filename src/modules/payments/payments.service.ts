@@ -22,21 +22,35 @@ export class PaymentsService {
     private auditService: AuditService,
   ) {}
 
-  private async generateReceiptNumber(branchId?: number): Promise<string> {
+  private async generateReceiptNumber(branchId?: number, offset = 0): Promise<string> {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+    const prefix = `RCP-${dateStr}-`;
 
-    // Count today's payments to get running number (per branch)
+    // Find the latest receipt number for today
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
 
-    const where: any = { createdAt: { gte: startOfDay } };
+    const where: any = {
+      createdAt: { gte: startOfDay },
+      receiptNumber: { startsWith: prefix },
+    };
     if (branchId) where.branchId = branchId;
 
-    const count = await this.prisma.payment.count({ where });
+    const lastPayment = await this.prisma.payment.findFirst({
+      where,
+      orderBy: { receiptNumber: 'desc' },
+      select: { receiptNumber: true },
+    });
 
-    const runningNumber = String(count + 1).padStart(3, '0');
-    return `RCP-${dateStr}-${runningNumber}`;
+    let nextNumber = 1;
+    if (lastPayment) {
+      const lastNum = parseInt(lastPayment.receiptNumber.slice(prefix.length), 10);
+      if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+    }
+
+    const runningNumber = String(nextNumber + offset).padStart(3, '0');
+    return `${prefix}${runningNumber}`;
   }
 
   async createPayment(dto: CreatePaymentDto, branchId?: number) {
@@ -164,53 +178,65 @@ export class PaymentsService {
       );
     }
 
-    // 7. Generate receipt number
-    const receiptNumber = await this.generateReceiptNumber(branchId);
-
-    // 8. Calculate points earned (1 point per 25 baht of totalAmount)
+    // 7. Calculate points earned (1 point per 25 baht of totalAmount)
     if (memberId) {
       pointsEarned = Math.floor(totalAmount / 25);
     }
 
-    // 9. Create payment
-    const payment = await this.prisma.payment.create({
-      data: {
-        receiptNumber,
-        orderId: order.id,
-        branchId,
-        paymentMethod: dto.paymentMethod,
-        paymentStatus: PaymentStatus.PAID,
-        subtotal,
-        serviceCharge: dto.serviceCharge ?? 0,
-        vat: dto.vat ?? 0,
-        discountAmount,
-        discountPoints,
-        totalAmount,
-        paidAmount: effectivePaidAmount,
-        changeAmount,
-        memberId,
-        memberName,
-        pointsEarned,
-        cashierName: dto.cashierName || null,
-        note: dto.note || null,
-        shiftId: dto.shiftId || null,
-        promotionId,
-        promotionDiscount,
-        promotionName,
-        couponCode,
-        splitPayments: splitPaymentsData,
-        paidAt: new Date(),
-      },
-      include: {
-        order: {
+    // 8. Create payment with retry on receipt number collision
+    const MAX_RETRIES = 5;
+    let payment: any;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const receiptNumber = await this.generateReceiptNumber(branchId, attempt);
+      try {
+        payment = await this.prisma.payment.create({
+          data: {
+            receiptNumber,
+            orderId: order.id,
+            branchId,
+            paymentMethod: dto.paymentMethod,
+            paymentStatus: PaymentStatus.PAID,
+            subtotal,
+            serviceCharge: dto.serviceCharge ?? 0,
+            vat: dto.vat ?? 0,
+            discountAmount,
+            discountPoints,
+            totalAmount,
+            paidAmount: effectivePaidAmount,
+            changeAmount,
+            memberId,
+            memberName,
+            pointsEarned,
+            cashierName: dto.cashierName || null,
+            note: dto.note || null,
+            shiftId: dto.shiftId || null,
+            promotionId,
+            promotionDiscount,
+            promotionName,
+            couponCode,
+            splitPayments: splitPaymentsData,
+            paidAt: new Date(),
+          },
           include: {
-            items: {
-              include: { menuItem: true },
+            order: {
+              include: {
+                items: {
+                  include: { menuItem: true },
+                },
+              },
             },
           },
-        },
-      },
-    });
+        });
+        break;
+      } catch (error: any) {
+        // P2002 = unique constraint violation on receiptNumber
+        if (error.code === 'P2002') {
+          if (attempt === MAX_RETRIES - 1) throw error;
+          continue;
+        }
+        throw error;
+      }
+    }
 
     // 10. Increment promotion usage
     if (promotionId) {
@@ -403,56 +429,68 @@ export class PaymentsService {
       );
     }
 
-    // 9. Generate receipt number
-    const receiptNumber = await this.generateReceiptNumber(branchId);
-
-    // 10. Calculate points earned
+    // 9. Calculate points earned
     if (memberId) {
       pointsEarned = Math.floor(totalAmount / 25);
     }
 
-    // 11. Create primary payment (linked to first order) + marker payments for others
-    const primaryPayment = await this.prisma.payment.create({
-      data: {
-        receiptNumber,
-        orderId: orders[0].id,
-        branchId,
-        paymentMethod: dto.paymentMethod,
-        paymentStatus: PaymentStatus.PAID,
-        subtotal: combinedSubtotal,
-        discountAmount,
-        discountPoints,
-        totalAmount,
-        paidAmount: effectivePaidAmount,
-        changeAmount,
-        memberId,
-        memberName,
-        pointsEarned,
-        cashierName: dto.cashierName || null,
-        note: dto.note || null,
-        shiftId: dto.shiftId || null,
-        promotionId,
-        promotionDiscount,
-        promotionName,
-        couponCode,
-        mergedOrderIds: dto.orderIds,
-        splitPayments: splitPaymentsData,
-        paidAt: new Date(),
-      },
-      include: {
-        order: {
-          include: {
-            items: { include: { menuItem: true } },
+    // 10. Create primary payment with retry on receipt number collision
+    const MAX_RETRIES = 5;
+    let primaryPayment: any;
+    let receiptNumber: string;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      receiptNumber = await this.generateReceiptNumber(branchId, attempt);
+      try {
+        primaryPayment = await this.prisma.payment.create({
+          data: {
+            receiptNumber,
+            orderId: orders[0].id,
+            branchId,
+            paymentMethod: dto.paymentMethod,
+            paymentStatus: PaymentStatus.PAID,
+            subtotal: combinedSubtotal,
+            discountAmount,
+            discountPoints,
+            totalAmount,
+            paidAmount: effectivePaidAmount,
+            changeAmount,
+            memberId,
+            memberName,
+            pointsEarned,
+            cashierName: dto.cashierName || null,
+            note: dto.note || null,
+            shiftId: dto.shiftId || null,
+            promotionId,
+            promotionDiscount,
+            promotionName,
+            couponCode,
+            mergedOrderIds: dto.orderIds,
+            splitPayments: splitPaymentsData,
+            paidAt: new Date(),
           },
-        },
-      },
-    });
+          include: {
+            order: {
+              include: {
+                items: { include: { menuItem: true } },
+              },
+            },
+          },
+        });
+        break;
+      } catch (error: any) {
+        if (error.code === 'P2002') {
+          if (attempt === MAX_RETRIES - 1) throw error;
+          continue;
+        }
+        throw error;
+      }
+    }
 
-    // 12. Create marker payments for remaining orders (so they appear as paid)
+    // 11. Create marker payments for remaining orders (so they appear as paid)
     for (let i = 1; i < orders.length; i++) {
       await this.prisma.payment.create({
         data: {
-          receiptNumber: `${receiptNumber}/M${i + 1}`,
+          receiptNumber: `${receiptNumber!}/M${i + 1}`,
           orderId: orders[i].id,
           branchId,
           paymentMethod: dto.paymentMethod,
@@ -464,7 +502,7 @@ export class PaymentsService {
           paidAmount: 0,
           changeAmount: 0,
           cashierName: dto.cashierName || null,
-          note: `รวมจ่ายในใบเสร็จ ${receiptNumber}`,
+          note: `รวมจ่ายในใบเสร็จ ${receiptNumber!}`,
           shiftId: dto.shiftId || null,
           mergedOrderIds: dto.orderIds,
           paidAt: new Date(),
