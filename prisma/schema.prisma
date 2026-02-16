@@ -525,6 +525,7 @@ model Payment {
   promotionName     String?
   couponCode        String?
   mergedOrderIds    Int[]
+  splitPayments     Json?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -683,6 +684,7 @@ enum AuditAction {
   ORDER_CANCELLED
   ORDER_ITEM_STATUS_CHANGED
   ORDER_SPLIT
+  ORDER_TABLE_TRANSFERRED
   PAYMENT_CREATED
   PAYMENT_MERGED
   PAYMENT_REFUNDED

@@ -19,7 +19,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { TablesService } from './tables.service';
-import { CreateTableDto, UpdateTableStatusDto, OpenTableSessionDto } from './dto';
+import { CreateTableDto, UpdateTableStatusDto, OpenTableSessionDto, TransferTableDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -144,6 +144,17 @@ export class TablesController {
   @ApiResponse({ status: 200, description: 'Table unmerged' })
   unmergeTable(@Param('id', ParseIntPipe) id: number) {
     return this.tablesService.unmergeTable(id);
+  }
+
+  @Post(':id/transfer')
+  @ApiOperation({ summary: 'Transfer orders from one table to another' })
+  @ApiResponse({ status: 200, description: 'Table transferred successfully' })
+  transferTable(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: TransferTableDto,
+    @BranchId() branchId: number,
+  ) {
+    return this.tablesService.transferTable(id, dto, branchId);
   }
 
   @Post(':id/open-session')

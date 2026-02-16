@@ -133,15 +133,34 @@ export class PaymentsService {
 
     // 6. Calculate amounts
     const totalAmount = subtotal - discountAmount - promotionDiscount;
-    const changeAmount =
-      dto.paymentMethod === PaymentMethod.CASH
-        ? Math.max(0, dto.paidAmount - totalAmount)
-        : 0;
+
+    // Handle split payments
+    let effectivePaidAmount = dto.paidAmount;
+    let changeAmount: number;
+    let splitPaymentsData: any = null;
+
+    if (dto.splitPayments && dto.splitPayments.length > 0) {
+      splitPaymentsData = dto.splitPayments;
+      effectivePaidAmount = dto.splitPayments.reduce((sum, sp) => sum + sp.amount, 0);
+
+      const cashSplit = dto.splitPayments.find((sp) => sp.method === PaymentMethod.CASH);
+      const nonCashTotal = dto.splitPayments
+        .filter((sp) => sp.method !== PaymentMethod.CASH)
+        .reduce((sum, sp) => sum + sp.amount, 0);
+      const cashNeeded = Math.max(0, totalAmount - nonCashTotal);
+
+      changeAmount = cashSplit ? Math.max(0, cashSplit.amount - cashNeeded) : 0;
+    } else {
+      changeAmount =
+        dto.paymentMethod === PaymentMethod.CASH
+          ? Math.max(0, dto.paidAmount - totalAmount)
+          : 0;
+    }
 
     // Validate paid amount
-    if (dto.paidAmount < totalAmount) {
+    if (effectivePaidAmount < totalAmount) {
       throw new BadRequestException(
-        `Insufficient payment. Required: ${totalAmount}, Received: ${dto.paidAmount}`,
+        `Insufficient payment. Required: ${totalAmount}, Received: ${effectivePaidAmount}`,
       );
     }
 
@@ -167,7 +186,7 @@ export class PaymentsService {
         discountAmount,
         discountPoints,
         totalAmount,
-        paidAmount: dto.paidAmount,
+        paidAmount: effectivePaidAmount,
         changeAmount,
         memberId,
         memberName,
@@ -179,6 +198,7 @@ export class PaymentsService {
         promotionDiscount,
         promotionName,
         couponCode,
+        splitPayments: splitPaymentsData,
         paidAt: new Date(),
       },
       include: {
@@ -353,14 +373,33 @@ export class PaymentsService {
 
     // 8. Calculate amounts
     const totalAmount = combinedSubtotal - discountAmount - promotionDiscount;
-    const changeAmount =
-      dto.paymentMethod === PaymentMethod.CASH
-        ? Math.max(0, dto.paidAmount - totalAmount)
-        : 0;
 
-    if (dto.paidAmount < totalAmount) {
+    // Handle split payments
+    let effectivePaidAmount = dto.paidAmount;
+    let changeAmount: number;
+    let splitPaymentsData: any = null;
+
+    if (dto.splitPayments && dto.splitPayments.length > 0) {
+      splitPaymentsData = dto.splitPayments;
+      effectivePaidAmount = dto.splitPayments.reduce((sum, sp) => sum + sp.amount, 0);
+
+      const cashSplit = dto.splitPayments.find((sp) => sp.method === PaymentMethod.CASH);
+      const nonCashTotal = dto.splitPayments
+        .filter((sp) => sp.method !== PaymentMethod.CASH)
+        .reduce((sum, sp) => sum + sp.amount, 0);
+      const cashNeeded = Math.max(0, totalAmount - nonCashTotal);
+
+      changeAmount = cashSplit ? Math.max(0, cashSplit.amount - cashNeeded) : 0;
+    } else {
+      changeAmount =
+        dto.paymentMethod === PaymentMethod.CASH
+          ? Math.max(0, dto.paidAmount - totalAmount)
+          : 0;
+    }
+
+    if (effectivePaidAmount < totalAmount) {
       throw new BadRequestException(
-        `Insufficient payment. Required: ${totalAmount}, Received: ${dto.paidAmount}`,
+        `Insufficient payment. Required: ${totalAmount}, Received: ${effectivePaidAmount}`,
       );
     }
 
@@ -384,7 +423,7 @@ export class PaymentsService {
         discountAmount,
         discountPoints,
         totalAmount,
-        paidAmount: dto.paidAmount,
+        paidAmount: effectivePaidAmount,
         changeAmount,
         memberId,
         memberName,
@@ -397,6 +436,7 @@ export class PaymentsService {
         promotionName,
         couponCode,
         mergedOrderIds: dto.orderIds,
+        splitPayments: splitPaymentsData,
         paidAt: new Date(),
       },
       include: {

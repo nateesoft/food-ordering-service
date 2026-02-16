@@ -289,7 +289,12 @@ export class OrdersService {
       where: {
         tableNumber,
         status: {
-          in: [OrderStatus.PREPARING, OrderStatus.COMPLETED],
+          notIn: [OrderStatus.CANCELLED],
+        },
+        payments: {
+          none: {
+            paymentStatus: 'PAID',
+          },
         },
       },
       include: {
