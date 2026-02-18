@@ -5,9 +5,12 @@ import {
   IsString,
   IsEnum,
   ArrayMinSize,
+  ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { PaymentMethod } from '@prisma/client';
+import { SplitPaymentItemDto } from './create-payment.dto';
 
 export class CreateMergedPaymentDto {
   @ApiProperty({
@@ -64,4 +67,14 @@ export class CreateMergedPaymentDto {
   @IsString()
   @IsOptional()
   couponCode?: string;
+
+  @ApiPropertyOptional({
+    example: [{ method: 'CASH', amount: 500 }, { method: 'TRANSFER', amount: 800 }],
+    description: 'Split payment details for multiple payment methods',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SplitPaymentItemDto)
+  splitPayments?: SplitPaymentItemDto[];
 }

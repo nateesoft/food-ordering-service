@@ -7,19 +7,16 @@ import {
   Param,
   Query,
   ParseIntPipe,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
 import { QueueService } from './queue.service';
 import { QueueGateway } from './queue.gateway';
 import { CreateQueueTicketDto, UpdateQueueStatusDto } from './dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { QueueStatus } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -96,8 +93,6 @@ export class QueueController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update queue ticket status' })
   @ApiResponse({ status: 200, description: 'Queue ticket status updated' })
   @ApiResponse({ status: 404, description: 'Queue ticket not found' })
@@ -112,8 +107,6 @@ export class QueueController {
   }
 
   @Post(':id/call')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Call queue ticket' })
   @ApiResponse({ status: 200, description: 'Queue ticket called' })
   @ApiResponse({ status: 404, description: 'Queue ticket not found' })

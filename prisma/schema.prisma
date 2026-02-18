@@ -525,6 +525,7 @@ model Payment {
   promotionName     String?
   couponCode        String?
   mergedOrderIds    Int[]
+  splitPayments     Json?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -674,4 +675,45 @@ model TableSession {
   @@index([tableId])
   @@index([status])
   @@index([branchId])
+}
+
+enum AuditAction {
+  @@schema("food_ordering")
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  ORDER_CANCELLED
+  ORDER_ITEM_STATUS_CHANGED
+  ORDER_SPLIT
+  ORDER_TABLE_TRANSFERRED
+  PAYMENT_CREATED
+  PAYMENT_MERGED
+  PAYMENT_REFUNDED
+}
+
+enum AuditEntityType {
+  @@schema("food_ordering")
+  ORDER
+  ORDER_ITEM
+  PAYMENT
+}
+
+model AuditLog {
+  @@schema("food_ordering")
+  id          Int             @id @default(autoincrement())
+  action      AuditAction
+  entityType  AuditEntityType
+  entityId    Int
+  entityRef   String?
+  performedBy String?
+  branchId    Int?
+  oldValues   Json?
+  newValues   Json?
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([performedBy])
+  @@index([branchId])
+  @@index([createdAt])
 }

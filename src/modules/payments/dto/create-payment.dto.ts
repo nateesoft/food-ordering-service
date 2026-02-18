@@ -1,6 +1,17 @@
-import { IsNumber, IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsEnum, IsArray, ValidateNested } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { PaymentMethod } from '@prisma/client';
+
+export class SplitPaymentItemDto {
+  @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
+  @IsEnum(PaymentMethod)
+  method: PaymentMethod;
+
+  @ApiProperty({ example: 500 })
+  @IsNumber()
+  amount: number;
+}
 
 export class CreatePaymentDto {
   @ApiProperty({ example: 1 })
@@ -59,4 +70,14 @@ export class CreatePaymentDto {
   @IsNumber()
   @IsOptional()
   vat?: number;
+
+  @ApiPropertyOptional({
+    example: [{ method: 'CASH', amount: 500 }, { method: 'TRANSFER', amount: 800 }],
+    description: 'Split payment details for multiple payment methods',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SplitPaymentItemDto)
+  splitPayments?: SplitPaymentItemDto[];
 }
