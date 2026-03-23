@@ -265,6 +265,17 @@ export class OrdersService {
       data: { status },
     });
 
+    // Emit event for WebSocket
+    this.eventEmitter.emit('order.itemStatusChanged', {
+      orderId: order.id,
+      orderRef: order.orderId,
+      itemId,
+      menuItemId: item.menuItemId,
+      oldStatus: item.status,
+      newStatus: status,
+      branchId: order.branchId,
+    });
+
     // Audit log
     this.auditService.log({
       action: 'ORDER_ITEM_STATUS_CHANGED',
