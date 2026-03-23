@@ -52,8 +52,8 @@ describe('OrdersService', () => {
       totalAmount: 250,
       totalItems: 2,
       items: [
-        { menuItemId: 1, quantity: 1, price: 150 },
-        { menuItemId: 2, quantity: 1, price: 100 },
+        { menuItemId: 1, quantity: 1, price: 150, diningOption: 'DINE_IN' },
+        { menuItemId: 2, quantity: 1, price: 100, diningOption: 'DINE_IN' },
       ],
     };
 

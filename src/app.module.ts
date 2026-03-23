@@ -22,6 +22,10 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { EventsModule } from './modules/events/events.module';
+import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
+import { TaxInvoiceModule } from './modules/tax-invoice/tax-invoice.module';
+import { KDSModule } from './modules/kds/kds.module';
 
 @Module({
   imports: [
@@ -55,6 +59,10 @@ import { AuditModule } from './modules/audit/audit.module';
     WebhooksModule,
     UploadModule,
     AuditModule,
+    EventsModule,
+    PaymentGatewayModule,
+    TaxInvoiceModule,
+    KDSModule,
   ],
   controllers: [],
   providers: [],

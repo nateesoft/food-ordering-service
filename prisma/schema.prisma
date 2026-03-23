@@ -30,7 +30,12 @@ model Branch {
   shifts          Shift[]
   promotions      Promotion[]
   webhooks        WebhookEndpoint[]
-  tableSessions   TableSession[]
+  tableSessions       TableSession[]
+  gatewayTransactions GatewayTransaction[]
+  companyTaxInfo      CompanyTaxInfo[]
+  taxInvoices         TaxInvoice[]
+  kdsStations         KDSStation[]
+  systemSettings      SystemSetting[]
 }
 
 model MenuItem {
@@ -716,4 +721,126 @@ model AuditLog {
   @@index([performedBy])
   @@index([branchId])
   @@index([createdAt])
+}
+
+// ==========================================
+// Payment Gateway
+// ==========================================
+
+enum GatewayTransactionStatus {
+  @@schema("food_ordering")
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model GatewayTransaction {
+  @@schema("food_ordering")
+  id              Int                      @id @default(autoincrement())
+  transactionId   String                   @unique
+  paymentMethod   PaymentMethod
+  amount          Float
+  currency        String                   @default("THB")
+  status          GatewayTransactionStatus @default(PENDING)
+  provider        String                   @default("mock")
+  providerRef     String?
+  qrCodeData      String?
+  metadata        Json?
+  completedAt     DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  branchId        Int?
+  branch          Branch?                  @relation(fields: [branchId], references: [id])
+
+  @@index([status])
+  @@index([branchId])
+}
+
+// ==========================================
+// Tax Invoice
+// ==========================================
+
+model CompanyTaxInfo {
+  @@schema("food_ordering")
+  id              Int      @id @default(autoincrement())
+  companyName     String
+  companyNameEn   String?
+  taxId           String
+  address         String
+  phone           String?
+  branchNumber    String   @default("00000")
+  branchName      String?
+  isHeadOffice    Boolean  @default(true)
+  branchId        Int?
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([branchId])
+}
+
+model TaxInvoice {
+  @@schema("food_ordering")
+  id              Int       @id @default(autoincrement())
+  invoiceNumber   String    @unique
+  paymentId       Int
+  receiptNumber   String?
+  buyerName       String
+  buyerTaxId      String
+  buyerAddress    String
+  buyerBranch     String    @default("00000")
+  subtotal        Float
+  vatAmount       Float
+  totalAmount     Float
+  items           Json?
+  issuedAt        DateTime  @default(now())
+  voidedAt        DateTime?
+  voidReason      String?
+  branchId        Int?
+  branch          Branch?   @relation(fields: [branchId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([paymentId])
+  @@index([branchId])
+  @@index([issuedAt])
+}
+
+// ==========================================
+// KDS (Kitchen Display System)
+// ==========================================
+
+model KDSStation {
+  @@schema("food_ordering")
+  id            Int      @id @default(autoincrement())
+  name          String
+  categories    String[]
+  color         String   @default("#3B82F6")
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  alertTimeout  Int      @default(300)
+  branchId      Int?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([branchId])
+}
+
+// ==========================================
+// System Settings
+// ==========================================
+
+model SystemSetting {
+  @@schema("food_ordering")
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  branchId  Int?
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId])
 }
