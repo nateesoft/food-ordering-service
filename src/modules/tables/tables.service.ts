@@ -51,9 +51,9 @@ export class TablesService {
     return table;
   }
 
-  async findByNumber(number: string) {
-    const table = await this.prisma.table.findUnique({
-      where: { number },
+  async findByNumber(number: string, branchId?: number) {
+    const table = await this.prisma.table.findFirst({
+      where: { number, ...(branchId ? { branchId } : {}) },
     });
 
     if (!table) {
@@ -64,8 +64,8 @@ export class TablesService {
   }
 
   async create(createTableDto: CreateTableDto, branchId?: number) {
-    const existing = await this.prisma.table.findUnique({
-      where: { number: createTableDto.number },
+    const existing = await this.prisma.table.findFirst({
+      where: { number: createTableDto.number, branchId: branchId ?? null },
     });
 
     if (existing) {

@@ -256,7 +256,7 @@ model QueueTicket {
 model Table {
   @@schema("food_ordering")
   id            Int         @id @default(autoincrement())
-  number        String      @unique
+  number        String
   capacity      Int
   status        TableStatus @default(AVAILABLE)
   size          String
@@ -273,6 +273,7 @@ model Table {
   staffAssignments TableStaffAssignment[]
   sessions      TableSession[]
 
+  @@unique([branchId, number])
   @@index([branchId])
 }
 
@@ -328,14 +329,15 @@ model TableStaffAssignment {
   @@schema("food_ordering")
   id           Int      @id @default(autoincrement())
   tableNumber  String
+  branchId     Int?
   userId       Int
   isActive     Boolean  @default(true)
   checkedInAt  DateTime @default(now())
   lastSeenAt   DateTime @default(now())
-  table        Table    @relation(fields: [tableNumber], references: [number], onDelete: Cascade)
+  table        Table?   @relation(fields: [branchId, tableNumber], references: [branchId, number], onDelete: Cascade)
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([tableNumber, userId])
+  @@unique([branchId, tableNumber, userId])
 }
 
 enum MenuType {

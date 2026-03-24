@@ -295,10 +295,11 @@ export class OrdersService {
     return updated;
   }
 
-  async getOrdersByTable(tableNumber: string) {
+  async getOrdersByTable(tableNumber: string, branchId?: number) {
     return this.prisma.order.findMany({
       where: {
         tableNumber,
+        ...(branchId ? { branchId } : {}),
         status: {
           notIn: [OrderStatus.CANCELLED],
         },

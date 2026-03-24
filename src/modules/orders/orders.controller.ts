@@ -61,8 +61,11 @@ export class OrdersController {
   @Get('table/:tableNumber')
   @ApiOperation({ summary: 'Get orders by table number' })
   @ApiResponse({ status: 200, description: 'List of orders for table' })
-  getOrdersByTable(@Param('tableNumber') tableNumber: string) {
-    return this.ordersService.getOrdersByTable(tableNumber);
+  getOrdersByTable(
+    @BranchId() branchId: number,
+    @Param('tableNumber') tableNumber: string,
+  ) {
+    return this.ordersService.getOrdersByTable(tableNumber, branchId);
   }
 
   @Get(':id')
