@@ -5,6 +5,8 @@ import { OrderStatus } from '@prisma/client';
 import { InventoryService } from '../inventory/inventory.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditService } from '../audit/audit.service';
+import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
+import { ROUTING_KEYS, OrderCreatedPayload, OrderStatusChangedPayload } from '../rabbitmq/events';
 
 @Injectable()
 export class OrdersService {
@@ -15,6 +17,7 @@ export class OrdersService {
     private inventoryService: InventoryService,
     private eventEmitter: EventEmitter2,
     private auditService: AuditService,
+    private rabbitMQPublisher: RabbitMQPublisher,
   ) {}
 
   private generateOrderId(): string {
@@ -68,6 +71,9 @@ export class OrdersService {
     // Deduct stock from inventory system
     this.deductInventoryStock(order.orderId, items);
 
+    // Publish to RabbitMQ (fire-and-forget)
+    this.publishOrderCreated(order, branchId);
+
     // Emit webhook event
     this.eventEmitter.emit('order.created', { data: order, branchId });
 
@@ -120,6 +126,41 @@ export class OrdersService {
     } catch (error) {
       this.logger.error(`Error deducting stock for order ${orderId}: ${error}`);
     }
+  }
+
+  private publishOrderCreated(order: any, branchId?: number): void {
+    const payload: OrderCreatedPayload = {
+      orderId: order.orderId,
+      internalId: order.id,
+      tableNumber: order.tableNumber,
+      status: order.status,
+      totalAmount: order.totalAmount,
+      totalItems: order.totalItems,
+      itemCount: order.items?.length ?? 0,
+      createdAt: order.createdAt instanceof Date
+        ? order.createdAt.toISOString()
+        : order.createdAt,
+    };
+    this.rabbitMQPublisher.publish(ROUTING_KEYS.ORDER_CREATED, payload, branchId);
+  }
+
+  private publishOrderStatusChanged(previousOrder: any, updatedOrder: any): void {
+    const isCancelled = updatedOrder.status === OrderStatus.CANCELLED;
+    const routingKey = isCancelled
+      ? ROUTING_KEYS.ORDER_CANCELLED
+      : ROUTING_KEYS.ORDER_STATUS_CHANGED;
+
+    const payload: OrderStatusChangedPayload = {
+      orderId: updatedOrder.orderId,
+      internalId: updatedOrder.id,
+      tableNumber: updatedOrder.tableNumber,
+      previousStatus: previousOrder.status,
+      currentStatus: updatedOrder.status,
+      updatedAt: updatedOrder.updatedAt instanceof Date
+        ? updatedOrder.updatedAt.toISOString()
+        : updatedOrder.updatedAt,
+    };
+    this.rabbitMQPublisher.publish(routingKey, payload, updatedOrder.branchId);
   }
 
   async findAll(status?: OrderStatus, tableNumber?: string, branchId?: number) {
@@ -227,6 +268,9 @@ export class OrdersService {
         },
       },
     });
+
+    // Publish to RabbitMQ (fire-and-forget)
+    this.publishOrderStatusChanged(order, updatedOrder);
 
     // Emit webhook event
     if (updateStatusDto.status === OrderStatus.CANCELLED) {

@@ -26,6 +26,7 @@ import { EventsModule } from './modules/events/events.module';
 import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
 import { TaxInvoiceModule } from './modules/tax-invoice/tax-invoice.module';
 import { KDSModule } from './modules/kds/kds.module';
+import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { KDSModule } from './modules/kds/kds.module';
     PaymentGatewayModule,
     TaxInvoiceModule,
     KDSModule,
+    RabbitMQBrokerModule,
   ],
   controllers: [],
   providers: [],
