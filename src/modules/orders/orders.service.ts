@@ -6,7 +6,7 @@ import { InventoryService } from '../inventory/inventory.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditService } from '../audit/audit.service';
 import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
-import { ROUTING_KEYS, OrderCreatedPayload, OrderStatusChangedPayload } from '../rabbitmq/events';
+import { ROUTING_KEYS, OrderCreatedPayload, OrderStatusChangedPayload, OrderItemDetail } from '../rabbitmq/events';
 
 @Injectable()
 export class OrdersService {
@@ -129,10 +129,18 @@ export class OrdersService {
   }
 
   private publishOrderCreated(order: any, branchId?: number): void {
+    const itemDetails: OrderItemDetail[] = (order.items ?? []).map((item: any) => ({
+      itemId: `ITEM-${String(item.menuItemId).padStart(3, '0')}`,
+      name: item.menuItem?.name ?? '',
+      quantity: item.quantity,
+      price: item.price,
+      specialInstructions: item.specialInstructions ?? null,
+    }));
+
     const payload: OrderCreatedPayload = {
       orderId: order.orderId,
       internalId: order.id,
-      tableNumber: order.tableNumber,
+      tableNumber: order.tableNumber ?? null,
       status: order.status,
       totalAmount: order.totalAmount,
       totalItems: order.totalItems,
@@ -140,6 +148,7 @@ export class OrdersService {
       createdAt: order.createdAt instanceof Date
         ? order.createdAt.toISOString()
         : order.createdAt,
+      itemDetails,
     };
     this.rabbitMQPublisher.publish(ROUTING_KEYS.ORDER_CREATED, payload, branchId);
   }

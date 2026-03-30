@@ -8,6 +8,14 @@ export interface RabbitMQMessageEnvelope<T> {
   payload: T;
 }
 
+export interface OrderItemDetail {
+  itemId: string;
+  name: string;
+  quantity: number;
+  price: number;
+  specialInstructions: string | null;
+}
+
 export interface OrderCreatedPayload {
   orderId: string;
   internalId: number;
@@ -17,6 +25,7 @@ export interface OrderCreatedPayload {
   totalItems: number;
   itemCount: number;
   createdAt: string;
+  itemDetails: OrderItemDetail[];
 }
 
 export interface OrderStatusChangedPayload {
