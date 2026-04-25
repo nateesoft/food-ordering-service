@@ -41,6 +41,13 @@ export class OrdersService {
       });
     }
 
+    const menuItemIds = [...new Set(items.map((i) => i.menuItemId))];
+    const menuItems = await this.prisma.menuItem.findMany({
+      where: { id: { in: menuItemIds } },
+      select: { id: true, code: true },
+    });
+    const codeByMenuItemId = new Map(menuItems.map((m) => [m.id, m.code]));
+
     const order = await this.prisma.order.create({
       data: {
         ...orderData,
@@ -49,6 +56,7 @@ export class OrdersService {
         items: {
           create: items.map((item) => ({
             menuItemId: item.menuItemId,
+            code: codeByMenuItemId.get(item.menuItemId) ?? null,
             quantity: item.quantity,
             price: item.price,
             specialInstructions: item.specialInstructions,
@@ -372,6 +380,19 @@ export class OrdersService {
       orderBy: {
         createdAt: 'desc',
       },
+    });
+  }
+
+  async completeOrdersByTable(tableNumber: string, branchId?: number) {
+    const where: any = {
+      tableNumber,
+      status: OrderStatus.PREPARING,
+    };
+    if (branchId) where.branchId = branchId;
+
+    return this.prisma.order.updateMany({
+      where,
+      data: { status: OrderStatus.COMPLETED },
     });
   }
 

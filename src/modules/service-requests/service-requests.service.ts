@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateServiceRequestDto, UpdateServiceRequestDto } from './dto';
-import { ServiceRequestStatus, ServiceRequestType } from '@prisma/client';
+import { OrderStatus, ServiceRequestStatus, ServiceRequestType, TableStatus } from '@prisma/client';
 
 @Injectable()
 export class ServiceRequestsService {
@@ -14,7 +14,7 @@ export class ServiceRequestsService {
   }
 
   async create(createServiceRequestDto: CreateServiceRequestDto, branchId?: number) {
-    return this.prisma.serviceRequest.create({
+    const serviceRequest = await this.prisma.serviceRequest.create({
       data: {
         ...createServiceRequestDto,
         branchId,
@@ -22,6 +22,19 @@ export class ServiceRequestsService {
         items: createServiceRequestDto.items || [],
       },
     });
+
+    if (createServiceRequestDto.type === ServiceRequestType.PAYMENT && createServiceRequestDto.tableNumber) {
+      const tableNumber = createServiceRequestDto.tableNumber;
+      await this.prisma.table.updateMany({
+        where: {
+          number: tableNumber,
+          ...(branchId ? { branchId } : {}),
+        },
+        data: { status: TableStatus.BILLING },
+      });
+    }
+
+    return serviceRequest;
   }
 
   async findAll(
@@ -69,14 +82,33 @@ export class ServiceRequestsService {
   }
 
   async updateStatus(id: number, updateStatusDto: UpdateServiceRequestDto) {
-    await this.findOne(id);
+    const request = await this.findOne(id);
 
-    return this.prisma.serviceRequest.update({
+    const updated = await this.prisma.serviceRequest.update({
       where: { id },
       data: {
         status: updateStatusDto.status,
       },
     });
+
+    if (
+      updateStatusDto.status === ServiceRequestStatus.COMPLETED &&
+      request.type === ServiceRequestType.PAYMENT &&
+      request.tableNumber
+    ) {
+      const where: any = {
+        tableNumber: request.tableNumber,
+        status: OrderStatus.PREPARING,
+      };
+      if (request.branchId) where.branchId = request.branchId;
+
+      await this.prisma.order.updateMany({
+        where,
+        data: { status: OrderStatus.COMPLETED },
+      });
+    }
+
+    return updated;
   }
 
   async getPendingRequests(branchId?: number) {

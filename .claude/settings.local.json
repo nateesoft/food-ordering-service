@@ -22,7 +22,11 @@
       "Bash(__NEW_LINE_e19a0915e88f3936__ echo \"\")",
       "Bash(tree:*)",
       "Bash(xargs cat:*)",
-      "Bash(npx prisma migrate:*)"
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx tsc *)",
+      "Bash(npx nest *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|entity|model|schema|dto\\)$\")",
+      "Bash(npx prisma *)"
     ]
   }
 }

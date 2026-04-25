@@ -41,6 +41,7 @@ model Branch {
 model MenuItem {
   @@schema("food_ordering")
   id                   Int                  @id @default(autoincrement())
+  code                 String
   name                 String
   category             String
   price                Float
@@ -215,6 +216,7 @@ model OrderItem {
   id                    Int      @id @default(autoincrement())
   orderId               Int
   menuItemId            Int
+  code                  String?
   quantity              Int      @default(1)
   price                 Float
   specialInstructions   String?

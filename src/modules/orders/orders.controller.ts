@@ -96,6 +96,16 @@ export class OrdersController {
     return this.ordersService.splitOrder(id, splitOrderDto, branchId);
   }
 
+  @Patch('complete-by-table/:tableNumber')
+  @ApiOperation({ summary: 'Mark all PREPARING orders for a table as COMPLETED (request payment)' })
+  @ApiResponse({ status: 200, description: 'Orders completed' })
+  completeOrdersByTable(
+    @BranchId() branchId: number,
+    @Param('tableNumber') tableNumber: string,
+  ) {
+    return this.ordersService.completeOrdersByTable(tableNumber, branchId);
+  }
+
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update order status' })
   @ApiResponse({ status: 200, description: 'Order status updated' })
