@@ -25,11 +25,15 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { TableStatus } from '@prisma/client';
+import { StaffService } from '../staff/staff.service';
 
 @ApiTags('Tables')
 @Controller('tables')
 export class TablesController {
-  constructor(private readonly tablesService: TablesService) {}
+  constructor(
+    private readonly tablesService: TablesService,
+    private readonly staffService: StaffService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all tables' })
@@ -88,6 +92,14 @@ export class TablesController {
   @ApiResponse({ status: 404, description: 'Table not found' })
   findByNumber(@Param('number') number: string) {
     return this.tablesService.findByNumber(number);
+  }
+
+  @Get('number/:number/staff')
+  @ApiOperation({ summary: 'Get staff assigned to a table' })
+  @ApiResponse({ status: 200, description: 'List of staff assigned to the table' })
+  @ApiResponse({ status: 404, description: 'Table not found' })
+  getTableStaff(@Param('number') number: string) {
+    return this.staffService.getTableStaff(number);
   }
 
   @Post()

@@ -49,6 +49,7 @@ import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
     OrdersModule,
     QueueModule,
     TablesModule,
+    StaffModule,
     ServiceRequestsModule,
     MembersModule,
     DashboardModule,
