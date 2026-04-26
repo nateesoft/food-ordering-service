@@ -26,7 +26,8 @@
       "Bash(npx tsc *)",
       "Bash(npx nest *)",
       "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|entity|model|schema|dto\\)$\")",
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "Bash(netstat -anp tcp)"
     ]
   }
 }

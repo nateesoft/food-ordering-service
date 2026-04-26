@@ -139,6 +139,7 @@ export class OrdersService {
   private publishOrderCreated(order: any, branchId?: number): void {
     const itemDetails: OrderItemDetail[] = (order.items ?? []).map((item: any) => ({
       itemId: `ITEM-${String(item.menuItemId).padStart(3, '0')}`,
+      code: item.menuItem?.code ?? '',
       name: item.menuItem?.name ?? '',
       quantity: item.quantity,
       price: item.price,

@@ -10,6 +10,7 @@ export interface RabbitMQMessageEnvelope<T> {
 
 export interface OrderItemDetail {
   itemId: string;
+  code: string;
   name: string;
   quantity: number;
   price: number;
