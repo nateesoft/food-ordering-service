@@ -18,6 +18,7 @@ import {
 import { StaffService } from './staff.service';
 import { CheckInDto, CheckOutDto, HeartbeatDto, SetPinDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Staff')
 @Controller('staff')
@@ -29,8 +30,8 @@ export class StaffController {
   @ApiResponse({ status: 200, description: 'Checked in successfully' })
   @ApiResponse({ status: 401, description: 'Invalid PIN' })
   @ApiResponse({ status: 404, description: 'Table not found' })
-  async checkIn(@Body() checkInDto: CheckInDto) {
-    return this.staffService.checkIn(checkInDto);
+  async checkIn(@BranchId() branchId: number, @Body() checkInDto: CheckInDto) {
+    return this.staffService.checkIn(checkInDto, branchId);
   }
 
   @Post('check-out')
@@ -38,8 +39,8 @@ export class StaffController {
   @ApiResponse({ status: 200, description: 'Checked out successfully' })
   @ApiResponse({ status: 401, description: 'Invalid PIN' })
   @ApiResponse({ status: 404, description: 'No active check-in found' })
-  async checkOut(@Body() checkOutDto: CheckOutDto) {
-    return this.staffService.checkOut(checkOutDto);
+  async checkOut(@BranchId() branchId: number, @Body() checkOutDto: CheckOutDto) {
+    return this.staffService.checkOut(checkOutDto, branchId);
   }
 
   @Patch('heartbeat')
@@ -47,8 +48,8 @@ export class StaffController {
   @ApiResponse({ status: 200, description: 'Heartbeat updated' })
   @ApiResponse({ status: 401, description: 'Invalid PIN' })
   @ApiResponse({ status: 404, description: 'No active check-in found' })
-  async heartbeat(@Body() heartbeatDto: HeartbeatDto) {
-    return this.staffService.heartbeat(heartbeatDto);
+  async heartbeat(@BranchId() branchId: number, @Body() heartbeatDto: HeartbeatDto) {
+    return this.staffService.heartbeat(heartbeatDto, branchId);
   }
 
   @Post('verify-pin')
@@ -86,14 +87,7 @@ export class StaffController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all active staff-table assignments' })
   @ApiResponse({ status: 200, description: 'Returns all active assignments' })
-  async getAllActiveAssignments() {
-    return this.staffService.getAllActiveAssignments();
-  }
-
-  @Get('assignments/public')
-  @ApiOperation({ summary: 'Get all active staff-table assignments (public, for floor plan)' })
-  @ApiResponse({ status: 200, description: 'Returns all active assignments grouped by table' })
-  async getPublicAssignments() {
-    return this.staffService.getAssignmentsGroupedByTable();
+  async getAllActiveAssignments(@BranchId() branchId: number) {
+    return this.staffService.getAllActiveAssignments(branchId);
   }
 }

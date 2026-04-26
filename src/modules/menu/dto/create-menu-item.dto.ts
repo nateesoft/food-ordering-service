@@ -28,6 +28,10 @@ class SetComponentDto {
 }
 
 export class CreateMenuItemDto {
+  @ApiProperty({ example: 'PT001' })
+  @IsString()
+  code: string;
+
   @ApiProperty({ example: 'Pad Thai' })
   @IsString()
   name: string;

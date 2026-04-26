@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MenuModule } from './modules/menu/menu.module';
@@ -10,14 +13,36 @@ import { TablesModule } from './modules/tables/tables.module';
 import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 import { MembersModule } from './modules/members/members.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import { StaffModule } from './modules/staff/staff.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { BranchModule } from './modules/branch/branch.module';
+import { ShiftsModule } from './modules/shifts/shifts.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { UploadModule } from './modules/upload/upload.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { EventsModule } from './modules/events/events.module';
+import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
+import { TaxInvoiceModule } from './modules/tax-invoice/tax-invoice.module';
+import { KDSModule } from './modules/kds/kds.module';
+import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    EventEmitterModule.forRoot(),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public', 'uploads'),
+      serveRoot: '/uploads',
+      serveStaticOptions: {
+        index: false,
+      },
+    }),
     PrismaModule,
+    BranchModule,
     AuthModule,
     MenuModule,
     AddonsModule,
@@ -28,6 +53,19 @@ import { StaffModule } from './modules/staff/staff.module';
     ServiceRequestsModule,
     MembersModule,
     DashboardModule,
+    InventoryModule,
+    StaffModule,
+    PaymentsModule,
+    ShiftsModule,
+    PromotionsModule,
+    WebhooksModule,
+    UploadModule,
+    AuditModule,
+    EventsModule,
+    PaymentGatewayModule,
+    TaxInvoiceModule,
+    KDSModule,
+    RabbitMQBrokerModule,
   ],
   controllers: [],
   providers: [],

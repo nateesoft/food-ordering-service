@@ -19,10 +19,11 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { TablesService } from './tables.service';
-import { CreateTableDto, UpdateTableStatusDto } from './dto';
+import { CreateTableDto, UpdateTableStatusDto, OpenTableSessionDto, TransferTableDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { TableStatus } from '@prisma/client';
 import { StaffService } from '../staff/staff.service';
 
@@ -37,23 +38,44 @@ export class TablesController {
   @Get()
   @ApiOperation({ summary: 'Get all tables' })
   @ApiQuery({ name: 'status', required: false, enum: TableStatus })
+  @ApiQuery({ name: 'zone', required: false })
   @ApiResponse({ status: 200, description: 'List of tables' })
-  findAll(@Query('status') status?: TableStatus) {
-    return this.tablesService.findAll(status);
+  findAll(
+    @BranchId() branchId: number,
+    @Query('status') status?: TableStatus,
+    @Query('zone') zone?: string,
+  ) {
+    return this.tablesService.findAll(status, branchId, zone);
   }
 
   @Get('available')
   @ApiOperation({ summary: 'Get available tables' })
   @ApiResponse({ status: 200, description: 'List of available tables' })
-  getAvailableTables() {
-    return this.tablesService.getAvailableTables();
+  getAvailableTables(@BranchId() branchId: number) {
+    return this.tablesService.getAvailableTables(branchId);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get table statistics' })
   @ApiResponse({ status: 200, description: 'Table statistics' })
-  getTableStats() {
-    return this.tablesService.getTableStats();
+  getTableStats(@BranchId() branchId: number) {
+    return this.tablesService.getTableStats(branchId);
+  }
+
+  @Get('zones')
+  @ApiOperation({ summary: 'Get all table zones' })
+  @ApiResponse({ status: 200, description: 'List of zones' })
+  getZones(@BranchId() branchId: number) {
+    return this.tablesService.getZones(branchId);
+  }
+
+  @Patch('bulk-positions')
+  @ApiOperation({ summary: 'Bulk update table positions (Admin)' })
+  @ApiResponse({ status: 200, description: 'Positions updated' })
+  bulkUpdatePositions(
+    @Body() updates: { id: number; positionX: number; positionY: number }[],
+  ) {
+    return this.tablesService.bulkUpdatePositions(updates);
   }
 
   @Get(':id')
@@ -86,8 +108,8 @@ export class TablesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new table (Admin only)' })
   @ApiResponse({ status: 201, description: 'Table created' })
-  create(@Body() createTableDto: CreateTableDto) {
-    return this.tablesService.create(createTableDto);
+  create(@BranchId() branchId: number, @Body() createTableDto: CreateTableDto) {
+    return this.tablesService.create(createTableDto, branchId);
   }
 
   @Put(':id')
@@ -134,6 +156,42 @@ export class TablesController {
   @ApiResponse({ status: 200, description: 'Table unmerged' })
   unmergeTable(@Param('id', ParseIntPipe) id: number) {
     return this.tablesService.unmergeTable(id);
+  }
+
+  @Post(':id/transfer')
+  @ApiOperation({ summary: 'Transfer orders from one table to another' })
+  @ApiResponse({ status: 200, description: 'Table transferred successfully' })
+  transferTable(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: TransferTableDto,
+    @BranchId() branchId: number,
+  ) {
+    return this.tablesService.transferTable(id, dto, branchId);
+  }
+
+  @Post(':id/open-session')
+  @ApiOperation({ summary: 'Open a table session' })
+  @ApiResponse({ status: 201, description: 'Session opened' })
+  openSession(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: OpenTableSessionDto,
+    @BranchId() branchId: number,
+  ) {
+    return this.tablesService.openSession(id, dto, branchId);
+  }
+
+  @Post(':id/close-session')
+  @ApiOperation({ summary: 'Close active table session' })
+  @ApiResponse({ status: 200, description: 'Session closed' })
+  closeSession(@Param('id', ParseIntPipe) id: number) {
+    return this.tablesService.closeSession(id);
+  }
+
+  @Get(':id/active-session')
+  @ApiOperation({ summary: 'Get active session for table' })
+  @ApiResponse({ status: 200, description: 'Active session or null' })
+  getActiveSession(@Param('id', ParseIntPipe) id: number) {
+    return this.tablesService.getActiveSession(id);
   }
 
   @Delete(':id')

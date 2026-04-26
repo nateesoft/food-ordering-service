@@ -1,12 +1,33 @@
 {
   "permissions": {
     "allow": [
-      "Bash(tree:*)",
-      "Bash(npx prisma format:*)",
-      "Bash(npx prisma migrate:*)",
-      "Bash(npx prisma:*)",
+      "Bash(wc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma init)",
+      "Bash(npx prisma generate:*)",
       "Bash(npm run build:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(xargs basename:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Read(//Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/**)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx prisma db seed:*)",
+      "Bash(npm run dev:*)",
+      "Bash(kill:*)",
+      "Bash(python3:*)",
+      "Bash(pkill:*)",
+      "Bash(__NEW_LINE_52e172194b12c22b__ echo \"\")",
+      "Bash(echo:*)",
+      "Bash(xargs kill -9)",
+      "Bash(__NEW_LINE_e19a0915e88f3936__ echo \"\")",
+      "Bash(tree:*)",
+      "Bash(xargs cat:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx tsc *)",
+      "Bash(npx nest *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|entity|model|schema|dto\\)$\")",
+      "Bash(npx prisma *)",
+      "Bash(netstat -anp tcp)"
     ]
   }
 }

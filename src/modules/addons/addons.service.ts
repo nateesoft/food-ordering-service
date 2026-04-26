@@ -7,8 +7,12 @@ export class AddonsService {
   constructor(private prisma: PrismaService) {}
 
   // Add-ons
-  async findAllAddOns(category?: string, isActive?: boolean) {
+  async findAllAddOns(category?: string, isActive?: boolean, branchId?: number) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (category) {
       where.category = category;
@@ -36,9 +40,9 @@ export class AddonsService {
     return addOn;
   }
 
-  async createAddOn(createAddOnDto: CreateAddOnDto) {
+  async createAddOn(createAddOnDto: CreateAddOnDto, branchId?: number) {
     return this.prisma.addOn.create({
-      data: createAddOnDto,
+      data: { ...createAddOnDto, branchId },
     });
   }
 
@@ -60,8 +64,12 @@ export class AddonsService {
   }
 
   // Add-on Groups
-  async findAllAddOnGroups(category?: string, isActive?: boolean) {
+  async findAllAddOnGroups(category?: string, isActive?: boolean, branchId?: number) {
     const where: any = {};
+
+    if (branchId) {
+      where.branchId = branchId;
+    }
 
     if (category) {
       where.category = category;
@@ -103,12 +111,13 @@ export class AddonsService {
     return addOnGroup;
   }
 
-  async createAddOnGroup(createAddOnGroupDto: CreateAddOnGroupDto) {
+  async createAddOnGroup(createAddOnGroupDto: CreateAddOnGroupDto, branchId?: number) {
     const { addOnIds, ...data } = createAddOnGroupDto;
 
     return this.prisma.addOnGroup.create({
       data: {
         ...data,
+        branchId,
         items: addOnIds
           ? {
               create: addOnIds.map((addOnId) => ({
@@ -172,9 +181,12 @@ export class AddonsService {
     });
   }
 
-  async getAddOnCategories() {
+  async getAddOnCategories(branchId?: number) {
+    const where: any = { isActive: true };
+    if (branchId) where.branchId = branchId;
+
     const items = await this.prisma.addOn.findMany({
-      where: { isActive: true },
+      where,
       select: { category: true },
       distinct: ['category'],
     });

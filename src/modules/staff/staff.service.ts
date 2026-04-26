@@ -12,7 +12,7 @@ import { CheckInDto, CheckOutDto, HeartbeatDto, SetPinDto } from './dto';
 export class StaffService {
   constructor(private prisma: PrismaService) {}
 
-  async checkIn(checkInDto: CheckInDto) {
+  async checkIn(checkInDto: CheckInDto, branchId?: number) {
     const { pin, tableNumber } = checkInDto;
 
     // Find staff by PIN
@@ -28,9 +28,9 @@ export class StaffService {
       throw new UnauthorizedException('Staff account is disabled');
     }
 
-    // Check if table exists
-    const table = await this.prisma.table.findUnique({
-      where: { number: tableNumber },
+    // Check if table exists (scoped to branch)
+    const table = await this.prisma.table.findFirst({
+      where: { number: tableNumber, branchId: branchId ?? null },
     });
 
     if (!table) {
@@ -38,77 +38,54 @@ export class StaffService {
     }
 
     // Check if staff already checked in to this table
-    const existingAssignment = await this.prisma.tableStaffAssignment.findUnique({
-      where: {
-        tableNumber_userId: {
-          tableNumber,
-          userId: staff.id,
-        },
-      },
+    const existingAssignment = await this.prisma.tableStaffAssignment.findFirst({
+      where: { branchId: branchId ?? null, tableNumber, userId: staff.id },
     });
 
     if (existingAssignment && existingAssignment.isActive) {
-      // Update lastSeenAt if already checked in
       const updated = await this.prisma.tableStaffAssignment.update({
         where: { id: existingAssignment.id },
         data: { lastSeenAt: new Date() },
         include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              role: true,
-            },
-          },
+          user: { select: { id: true, name: true, role: true } },
           table: true,
         },
       });
-
-      return {
-        message: 'Already checked in, updated last seen time',
-        assignment: updated,
-      };
+      return { message: 'Already checked in, updated last seen time', assignment: updated };
     }
 
     // Create or reactivate assignment
-    const assignment = await this.prisma.tableStaffAssignment.upsert({
-      where: {
-        tableNumber_userId: {
+    let assignment;
+    if (existingAssignment) {
+      assignment = await this.prisma.tableStaffAssignment.update({
+        where: { id: existingAssignment.id },
+        data: { isActive: true, checkedInAt: new Date(), lastSeenAt: new Date() },
+        include: {
+          user: { select: { id: true, name: true, role: true } },
+          table: true,
+        },
+      });
+    } else {
+      assignment = await this.prisma.tableStaffAssignment.create({
+        data: {
           tableNumber,
+          branchId: branchId ?? null,
           userId: staff.id,
+          checkedInAt: new Date(),
+          lastSeenAt: new Date(),
+          isActive: true,
         },
-      },
-      update: {
-        isActive: true,
-        checkedInAt: new Date(),
-        lastSeenAt: new Date(),
-      },
-      create: {
-        tableNumber,
-        userId: staff.id,
-        checkedInAt: new Date(),
-        lastSeenAt: new Date(),
-        isActive: true,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-          },
+        include: {
+          user: { select: { id: true, name: true, role: true } },
+          table: true,
         },
-        table: true,
-      },
-    });
+      });
+    }
 
-    return {
-      message: 'Checked in successfully',
-      assignment,
-    };
+    return { message: 'Checked in successfully', assignment };
   }
 
-  async checkOut(checkOutDto: CheckOutDto) {
+  async checkOut(checkOutDto: CheckOutDto, branchId?: number) {
     const { pin, tableNumber } = checkOutDto;
 
     // Find staff by PIN
@@ -121,16 +98,11 @@ export class StaffService {
     }
 
     // Find active assignment
-    const assignment = await this.prisma.tableStaffAssignment.findUnique({
-      where: {
-        tableNumber_userId: {
-          tableNumber,
-          userId: staff.id,
-        },
-      },
+    const assignment = await this.prisma.tableStaffAssignment.findFirst({
+      where: { branchId: branchId ?? null, tableNumber, userId: staff.id, isActive: true },
     });
 
-    if (!assignment || !assignment.isActive) {
+    if (!assignment) {
       throw new NotFoundException('No active check-in found for this table');
     }
 
@@ -159,7 +131,7 @@ export class StaffService {
     };
   }
 
-  async heartbeat(heartbeatDto: HeartbeatDto) {
+  async heartbeat(heartbeatDto: HeartbeatDto, branchId?: number) {
     const { pin, tableNumber } = heartbeatDto;
 
     // Find staff by PIN
@@ -172,16 +144,11 @@ export class StaffService {
     }
 
     // Find and update active assignment
-    const assignment = await this.prisma.tableStaffAssignment.findUnique({
-      where: {
-        tableNumber_userId: {
-          tableNumber,
-          userId: staff.id,
-        },
-      },
+    const assignment = await this.prisma.tableStaffAssignment.findFirst({
+      where: { branchId: branchId ?? null, tableNumber, userId: staff.id, isActive: true },
     });
 
-    if (!assignment || !assignment.isActive) {
+    if (!assignment) {
       throw new NotFoundException('No active check-in found for this table');
     }
 
@@ -206,10 +173,10 @@ export class StaffService {
     };
   }
 
-  async getTableStaff(tableNumber: string) {
-    // Check if table exists
-    const table = await this.prisma.table.findUnique({
-      where: { number: tableNumber },
+  async getTableStaff(tableNumber: string, branchId?: number) {
+    // Check if table exists (scoped to branch)
+    const table = await this.prisma.table.findFirst({
+      where: { number: tableNumber, branchId: branchId ?? null },
     });
 
     if (!table) {
@@ -325,11 +292,14 @@ export class StaffService {
     };
   }
 
-  async getAllActiveAssignments() {
+  async getAllActiveAssignments(branchId?: number) {
+    const where: any = { isActive: true };
+    if (branchId) {
+      where.table = { branchId };
+    }
+
     const assignments = await this.prisma.tableStaffAssignment.findMany({
-      where: {
-        isActive: true,
-      },
+      where,
       include: {
         user: {
           select: {
@@ -347,49 +317,5 @@ export class StaffService {
     });
 
     return assignments;
-  }
-
-  async getAssignmentsGroupedByTable() {
-    const assignments = await this.prisma.tableStaffAssignment.findMany({
-      where: {
-        isActive: true,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-          },
-        },
-      },
-      orderBy: {
-        checkedInAt: 'desc',
-      },
-    });
-
-    // Group by table number
-    const grouped: Record<string, {
-      staffId: number;
-      staffName: string;
-      staffRole: string;
-      checkedInAt: Date;
-      lastSeenAt: Date;
-    }[]> = {};
-
-    for (const assignment of assignments) {
-      if (!grouped[assignment.tableNumber]) {
-        grouped[assignment.tableNumber] = [];
-      }
-      grouped[assignment.tableNumber].push({
-        staffId: assignment.user.id,
-        staffName: assignment.user.name,
-        staffRole: assignment.user.role,
-        checkedInAt: assignment.checkedInAt,
-        lastSeenAt: assignment.lastSeenAt,
-      });
-    }
-
-    return grouped;
   }
 }

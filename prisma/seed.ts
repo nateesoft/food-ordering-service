@@ -13,6 +13,7 @@ async function addNestedMenuItems() {
   // 1. Create Steak menu item
   const steakMenu = await prisma.menuItem.create({
     data: {
+      code: 'WF001',
       name: 'Premium Steak',
       category: 'Western Food',
       price: 299,
@@ -28,6 +29,7 @@ async function addNestedMenuItems() {
   // 2. Create Pizza menu item
   const pizzaMenu = await prisma.menuItem.create({
     data: {
+      code: 'WF002',
       name: 'Custom Pizza',
       category: 'Western Food',
       price: 199,
@@ -343,16 +345,16 @@ async function main() {
 
   // Create Menu Items (regular items)
   const menuItemsData = [
-    { name: 'Pad Thai', category: 'Thai Food', price: 120, description: 'Classic Thai stir-fried noodles with shrimp', image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e', rating: 4.8, reviewCount: 150, type: MenuType.SINGLE },
-    { name: 'Tom Yum Soup', category: 'Thai Food', price: 150, description: 'Spicy and sour Thai soup with prawns', image: 'https://images.unsplash.com/photo-1548943487-a2e4e43b4853', rating: 4.7, reviewCount: 120, type: MenuType.SINGLE },
-    { name: 'Green Curry', category: 'Thai Food', price: 140, description: 'Thai green curry with chicken and vegetables', image: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd', rating: 4.6, reviewCount: 100, type: MenuType.SINGLE },
-    { name: 'Fried Rice', category: 'Rice', price: 100, description: 'Thai-style fried rice with egg', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b', rating: 4.5, reviewCount: 200, type: MenuType.SINGLE },
-    { name: 'Basil Chicken Rice', category: 'Rice', price: 110, description: 'Stir-fried basil chicken with rice', image: 'https://images.unsplash.com/photo-1569058242567-93de6f36f8e6', rating: 4.9, reviewCount: 180, type: MenuType.SINGLE },
-    { name: 'Grilled Pork Set', category: 'Set Menu', price: 199, description: 'Grilled pork with rice, soup, and side dish', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.7, reviewCount: 90, type: MenuType.SET },
-    { name: 'Spring Rolls', category: 'Appetizer', price: 80, description: 'Crispy Thai spring rolls', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.4, reviewCount: 75, type: MenuType.SINGLE },
-    { name: 'Mango Sticky Rice', category: 'Dessert', price: 90, description: 'Sweet sticky rice with fresh mango', image: 'https://images.unsplash.com/photo-1621293954908-907159247fc8', rating: 4.8, reviewCount: 130, type: MenuType.SINGLE },
-    { name: 'Thai Iced Tea', category: 'Beverage', price: 50, description: 'Classic Thai iced tea with milk', image: 'https://images.unsplash.com/photo-1558857563-b371033873b8', rating: 4.6, reviewCount: 95, type: MenuType.SINGLE },
-    { name: 'Coconut Water', category: 'Beverage', price: 45, description: 'Fresh young coconut water', image: 'https://images.unsplash.com/photo-1536657464919-892534f60d6e', rating: 4.5, reviewCount: 60, type: MenuType.SINGLE },
+    { code: 'TF001', name: 'Pad Thai', category: 'Thai Food', price: 120, description: 'Classic Thai stir-fried noodles with shrimp', image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e', rating: 4.8, reviewCount: 150, type: MenuType.SINGLE },
+    { code: 'TF002', name: 'Tom Yum Soup', category: 'Thai Food', price: 150, description: 'Spicy and sour Thai soup with prawns', image: 'https://images.unsplash.com/photo-1548943487-a2e4e43b4853', rating: 4.7, reviewCount: 120, type: MenuType.SINGLE },
+    { code: 'TF003', name: 'Green Curry', category: 'Thai Food', price: 140, description: 'Thai green curry with chicken and vegetables', image: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd', rating: 4.6, reviewCount: 100, type: MenuType.SINGLE },
+    { code: 'RC001', name: 'Fried Rice', category: 'Rice', price: 100, description: 'Thai-style fried rice with egg', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b', rating: 4.5, reviewCount: 200, type: MenuType.SINGLE },
+    { code: 'RC002', name: 'Basil Chicken Rice', category: 'Rice', price: 110, description: 'Stir-fried basil chicken with rice', image: 'https://images.unsplash.com/photo-1569058242567-93de6f36f8e6', rating: 4.9, reviewCount: 180, type: MenuType.SINGLE },
+    { code: 'SM001', name: 'Grilled Pork Set', category: 'Set Menu', price: 199, description: 'Grilled pork with rice, soup, and side dish', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.7, reviewCount: 90, type: MenuType.SET },
+    { code: 'AP001', name: 'Spring Rolls', category: 'Appetizer', price: 80, description: 'Crispy Thai spring rolls', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.4, reviewCount: 75, type: MenuType.SINGLE },
+    { code: 'DS001', name: 'Mango Sticky Rice', category: 'Dessert', price: 90, description: 'Sweet sticky rice with fresh mango', image: 'https://images.unsplash.com/photo-1621293954908-907159247fc8', rating: 4.8, reviewCount: 130, type: MenuType.SINGLE },
+    { code: 'BV001', name: 'Thai Iced Tea', category: 'Beverage', price: 50, description: 'Classic Thai iced tea with milk', image: 'https://images.unsplash.com/photo-1558857563-b371033873b8', rating: 4.6, reviewCount: 95, type: MenuType.SINGLE },
+    { code: 'BV002', name: 'Coconut Water', category: 'Beverage', price: 45, description: 'Fresh young coconut water', image: 'https://images.unsplash.com/photo-1536657464919-892534f60d6e', rating: 4.5, reviewCount: 60, type: MenuType.SINGLE },
   ];
   await prisma.menuItem.createMany({ data: menuItemsData });
   console.log('Created', menuItemsData.length, 'menu items');
