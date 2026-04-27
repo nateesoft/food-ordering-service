@@ -7,3 +7,6 @@ dist
 
 public/*
 .claude
+
+# Log files
+logs/*.log

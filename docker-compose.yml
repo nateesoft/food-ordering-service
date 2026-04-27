@@ -18,12 +18,14 @@ services:
     image: rabbitmq:3.13-management-alpine
     container_name: food-ordering-rabbitmq
     restart: unless-stopped
+    hostname: food-ordering-rabbitmq
     ports:
-      - '5672:5672'
-      - '15672:15672'
+      - '0.0.0.0:5673:5672'
+      - '0.0.0.0:15673:15672'
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: nathee
+      RABBITMQ_DEFAULT_PASS: nathee
+      RABBITMQ_DEFAULT_VHOST: /
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 

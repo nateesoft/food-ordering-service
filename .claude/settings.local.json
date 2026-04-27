@@ -27,7 +27,9 @@
       "Bash(npx nest *)",
       "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|entity|model|schema|dto\\)$\")",
       "Bash(npx prisma *)",
-      "Bash(netstat -anp tcp)"
+      "Bash(netstat -anp tcp)",
+      "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service diff HEAD prisma/schema.prisma)",
+      "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service show HEAD:prisma/schema.prisma)"
     ]
   }
 }

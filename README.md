@@ -249,3 +249,13 @@ npm run test:e2e
 
 MIT
 # food-ordering-service
+
+
+### FOR RABBITMQ ###
+rabbitmqctl add_user nathee nathee
+rabbitmqctl set_permissions -p / nathee ".*" ".*" ".*"
+rabbitmqctl set_user_tags nathee administrator
+
+rabbitmqctl list_users
+rabbitmqctl list_permissions -p /
+

@@ -144,6 +144,7 @@ export class OrdersService {
       quantity: item.quantity,
       price: item.price,
       specialInstructions: item.specialInstructions ?? null,
+      diningOption: item.diningOption ?? null,
     }));
 
     const payload: OrderCreatedPayload = {

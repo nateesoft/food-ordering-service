@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RabbitMQPublisher } from './rabbitmq.publisher';
+import { RabbitMQConsumer } from './rabbitmq.consumer';
+import { RabbitMQFileLogger } from '../../common/logger/rabbitmq-file-logger.service';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { RabbitMQPublisher } from './rabbitmq.publisher';
       }),
     }),
   ],
-  providers: [RabbitMQPublisher],
+  providers: [RabbitMQPublisher, RabbitMQConsumer, RabbitMQFileLogger],
   exports: [RabbitMQPublisher],
 })
 export class RabbitMQBrokerModule {}

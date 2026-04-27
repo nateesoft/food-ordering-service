@@ -15,6 +15,7 @@ export interface OrderItemDetail {
   quantity: number;
   price: number;
   specialInstructions: string | null;
+  diningOption: string | null;
 }
 
 export interface OrderCreatedPayload {
