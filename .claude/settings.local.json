@@ -32,7 +32,13 @@
       "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service show HEAD:prisma/schema.prisma)",
       "Bash(pip3 show *)",
       "Bash(pip3 install *)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(docker network *)",
+      "Bash(docker exec *)",
+      "Bash(docker inspect *)",
+      "Bash(docker-compose down *)",
+      "Bash(docker-compose build *)",
+      "Bash(docker-compose up *)"
     ]
   }
 }
