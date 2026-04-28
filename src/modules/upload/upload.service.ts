@@ -39,7 +39,7 @@ export class UploadService {
 
     fs.writeFileSync(filepath, file.buffer);
 
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:3001';
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
     const url = `${baseUrl}/uploads/${filename}`;
 
     return { url, filename };
@@ -53,7 +53,7 @@ export class UploadService {
     }
 
     const files = fs.readdirSync(UPLOAD_DIR);
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:3001';
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
 
     return files
       .filter((f) => {

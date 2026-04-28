@@ -29,7 +29,10 @@
       "Bash(npx prisma *)",
       "Bash(netstat -anp tcp)",
       "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service diff HEAD prisma/schema.prisma)",
-      "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service show HEAD:prisma/schema.prisma)"
+      "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service show HEAD:prisma/schema.prisma)",
+      "Bash(pip3 show *)",
+      "Bash(pip3 install *)",
+      "Bash(git remote *)"
     ]
   }
 }
