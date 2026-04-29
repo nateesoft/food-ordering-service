@@ -1,5 +1,7 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { LoggerModule } from './common/logger/logger.module';
+import { HttpLoggerMiddleware } from './common/logger/http-logger.middleware';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -30,6 +32,7 @@ import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -70,4 +73,8 @@ import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HttpLoggerMiddleware).forRoutes('*path');
+  }
+}

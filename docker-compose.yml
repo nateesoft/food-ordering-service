@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  postgres:
+  food-ordering-db:
     image: postgres:15-alpine
     container_name: food-ordering-db
     restart: unless-stopped
@@ -14,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  rabbitmq:
+  food-ordering-rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: food-ordering-rabbitmq
     restart: unless-stopped
@@ -29,6 +27,17 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  food-ordering-redis:
+    image: redis:7-alpine
+    container_name: food-ordering-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
   rabbitmq_data:
+  redis_data:
