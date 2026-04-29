@@ -39,7 +39,13 @@
       "Bash(docker-compose down *)",
       "Bash(docker-compose build *)",
       "Bash(docker-compose up *)",
-      "Bash(docker rm *)"
+      "Bash(docker rm *)",
+      "Read(//Users/nateelive/.docker/run/**)",
+      "Bash(docker info *)",
+      "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline status)",
+      "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline log --oneline -5)",
+      "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline ls-files docker-images/jenkins/)",
+      "Bash(docker compose *)"
     ]
   }
 }
