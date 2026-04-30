@@ -23,7 +23,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
 COPY package*.json ./
 
-EXPOSE 5000
+EXPOSE 3001
 
 # run pending migrations then start app
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

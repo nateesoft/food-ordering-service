@@ -272,116 +272,112 @@ async function addNestedMenuItems() {
 async function main() {
   console.log('Start seeding...');
 
-  // Check if base data already seeded
+  // ── Users ──────────────────────────────────────────────────────────────────
   const existingUsers = await prisma.user.count();
-  if (existingUsers > 0) {
-    console.log('Base data already exists. Checking for nested menu items...');
-
-    // Check if steak and pizza already exist
-    const steakExists = await prisma.menuItem.findFirst({ where: { name: 'Premium Steak' } });
-    if (!steakExists) {
-      console.log('Adding nested menu items (Steak & Pizza)...');
-      await addNestedMenuItems();
-      console.log('Nested menu items added successfully.');
-    } else {
-      console.log('Nested menu items already exist. Skipping...');
-    }
-    return;
+  if (existingUsers === 0) {
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await prisma.user.create({ data: { username: 'admin', password: hashedPassword, name: 'Administrator', role: UserRole.ADMIN } });
+    const staffPassword = await bcrypt.hash('staff123', 10);
+    await prisma.user.create({ data: { username: 'staff', password: staffPassword, name: 'Staff User', role: UserRole.STAFF } });
+    const chefPassword = await bcrypt.hash('chef123', 10);
+    await prisma.user.create({ data: { username: 'chef', password: chefPassword, name: 'Chef User', role: UserRole.CHEF } });
+    console.log('Created 3 users');
+  } else {
+    console.log(`Skipped users (${existingUsers} already exist)`);
   }
 
-  // Create users
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-  await prisma.user.create({
-    data: {
-      username: 'admin',
-      password: hashedPassword,
-      name: 'Administrator',
-      role: UserRole.ADMIN,
-    },
-  });
+  // ── Add-ons ────────────────────────────────────────────────────────────────
+  const existingAddOns = await prisma.addOn.count();
+  if (existingAddOns === 0) {
+    const addOnsData = [
+      { name: 'Extra Egg', price: 15, category: 'topping' },
+      { name: 'Extra Meat', price: 30, category: 'topping' },
+      { name: 'Extra Vegetables', price: 10, category: 'topping' },
+      { name: 'Spicy Sauce', price: 5, category: 'sauce' },
+      { name: 'Sweet Sauce', price: 5, category: 'sauce' },
+      { name: 'French Fries', price: 35, category: 'side' },
+      { name: 'Coleslaw', price: 25, category: 'side' },
+    ];
+    await prisma.addOn.createMany({ data: addOnsData });
+    console.log(`Created ${addOnsData.length} add-ons`);
+  } else {
+    console.log(`Skipped add-ons (${existingAddOns} already exist)`);
+  }
 
-  const staffPassword = await bcrypt.hash('staff123', 10);
-  await prisma.user.create({
-    data: {
-      username: 'staff',
-      password: staffPassword,
-      name: 'Staff User',
-      role: UserRole.STAFF,
-    },
-  });
+  // ── Add-on Groups ──────────────────────────────────────────────────────────
+  const existingAddOnGroups = await prisma.addOnGroup.count();
+  if (existingAddOnGroups === 0) {
+    await prisma.addOnGroup.createMany({
+      data: [
+        { name: 'Beverage Set', description: 'Choose your drink', price: 29, category: 'beverage-set' },
+        { name: 'Dessert Set', description: 'Sweet treat', price: 39, category: 'dessert-set' },
+      ],
+    });
+    console.log('Created 2 add-on groups');
+  } else {
+    console.log(`Skipped add-on groups (${existingAddOnGroups} already exist)`);
+  }
 
-  const chefPassword = await bcrypt.hash('chef123', 10);
-  await prisma.user.create({
-    data: {
-      username: 'chef',
-      password: chefPassword,
-      name: 'Chef User',
-      role: UserRole.CHEF,
-    },
-  });
-  console.log('Created 3 users');
+  // ── Menu Items ─────────────────────────────────────────────────────────────
+  const existingMenuItems = await prisma.menuItem.count();
+  if (existingMenuItems === 0) {
+    const menuItemsData = [
+      { code: 'TF001', name: 'Pad Thai', category: 'Thai Food', price: 120, description: 'Classic Thai stir-fried noodles with shrimp', image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e', rating: 4.8, reviewCount: 150, type: MenuType.SINGLE },
+      { code: 'TF002', name: 'Tom Yum Soup', category: 'Thai Food', price: 150, description: 'Spicy and sour Thai soup with prawns', image: 'https://images.unsplash.com/photo-1548943487-a2e4e43b4853', rating: 4.7, reviewCount: 120, type: MenuType.SINGLE },
+      { code: 'TF003', name: 'Green Curry', category: 'Thai Food', price: 140, description: 'Thai green curry with chicken and vegetables', image: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd', rating: 4.6, reviewCount: 100, type: MenuType.SINGLE },
+      { code: 'RC001', name: 'Fried Rice', category: 'Rice', price: 100, description: 'Thai-style fried rice with egg', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b', rating: 4.5, reviewCount: 200, type: MenuType.SINGLE },
+      { code: 'RC002', name: 'Basil Chicken Rice', category: 'Rice', price: 110, description: 'Stir-fried basil chicken with rice', image: 'https://images.unsplash.com/photo-1569058242567-93de6f36f8e6', rating: 4.9, reviewCount: 180, type: MenuType.SINGLE },
+      { code: 'SM001', name: 'Grilled Pork Set', category: 'Set Menu', price: 199, description: 'Grilled pork with rice, soup, and side dish', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.7, reviewCount: 90, type: MenuType.SET },
+      { code: 'AP001', name: 'Spring Rolls', category: 'Appetizer', price: 80, description: 'Crispy Thai spring rolls', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.4, reviewCount: 75, type: MenuType.SINGLE },
+      { code: 'DS001', name: 'Mango Sticky Rice', category: 'Dessert', price: 90, description: 'Sweet sticky rice with fresh mango', image: 'https://images.unsplash.com/photo-1621293954908-907159247fc8', rating: 4.8, reviewCount: 130, type: MenuType.SINGLE },
+      { code: 'BV001', name: 'Thai Iced Tea', category: 'Beverage', price: 50, description: 'Classic Thai iced tea with milk', image: 'https://images.unsplash.com/photo-1558857563-b371033873b8', rating: 4.6, reviewCount: 95, type: MenuType.SINGLE },
+      { code: 'BV002', name: 'Coconut Water', category: 'Beverage', price: 45, description: 'Fresh young coconut water', image: 'https://images.unsplash.com/photo-1536657464919-892534f60d6e', rating: 4.5, reviewCount: 60, type: MenuType.SINGLE },
+    ];
+    await prisma.menuItem.createMany({ data: menuItemsData });
+    console.log(`Created ${menuItemsData.length} menu items`);
+  } else {
+    console.log(`Skipped menu items (${existingMenuItems} already exist)`);
+  }
 
-  // Create Add-ons
-  const addOnsData = [
-    { name: 'Extra Egg', price: 15, category: 'topping' },
-    { name: 'Extra Meat', price: 30, category: 'topping' },
-    { name: 'Extra Vegetables', price: 10, category: 'topping' },
-    { name: 'Spicy Sauce', price: 5, category: 'sauce' },
-    { name: 'Sweet Sauce', price: 5, category: 'sauce' },
-    { name: 'French Fries', price: 35, category: 'side' },
-    { name: 'Coleslaw', price: 25, category: 'side' },
-  ];
-  await prisma.addOn.createMany({ data: addOnsData });
-  console.log('Created', addOnsData.length, 'add-ons');
+  // ── Nested Menu Items (Steak & Pizza) ──────────────────────────────────────
+  const steakExists = await prisma.menuItem.findFirst({ where: { name: 'Premium Steak' } });
+  if (!steakExists) {
+    await addNestedMenuItems();
+    console.log('Created nested menu items (Steak & Pizza)');
+  } else {
+    console.log('Skipped nested menu items (already exist)');
+  }
 
-  // Create Add-on Groups
-  await prisma.addOnGroup.createMany({
-    data: [
-      { name: 'Beverage Set', description: 'Choose your drink', price: 29, category: 'beverage-set' },
-      { name: 'Dessert Set', description: 'Sweet treat', price: 39, category: 'dessert-set' },
-    ],
-  });
-  console.log('Created 2 add-on groups');
+  // ── Tables ─────────────────────────────────────────────────────────────────
+  const existingTables = await prisma.table.count();
+  if (existingTables === 0) {
+    const tablesData = [
+      { number: 'T01', capacity: 2, size: 'small', status: TableStatus.AVAILABLE, positionX: 100, positionY: 100 },
+      { number: 'T02', capacity: 2, size: 'small', status: TableStatus.AVAILABLE, positionX: 200, positionY: 100 },
+      { number: 'T03', capacity: 4, size: 'medium', status: TableStatus.AVAILABLE, positionX: 300, positionY: 100 },
+      { number: 'T04', capacity: 4, size: 'medium', status: TableStatus.AVAILABLE, positionX: 100, positionY: 200 },
+      { number: 'T05', capacity: 6, size: 'large', status: TableStatus.AVAILABLE, positionX: 200, positionY: 200 },
+      { number: 'T06', capacity: 8, size: 'large', status: TableStatus.AVAILABLE, positionX: 300, positionY: 200 },
+    ];
+    await prisma.table.createMany({ data: tablesData });
+    console.log(`Created ${tablesData.length} tables`);
+  } else {
+    console.log(`Skipped tables (${existingTables} already exist)`);
+  }
 
-  // Create Menu Items (regular items)
-  const menuItemsData = [
-    { code: 'TF001', name: 'Pad Thai', category: 'Thai Food', price: 120, description: 'Classic Thai stir-fried noodles with shrimp', image: 'https://images.unsplash.com/photo-1559314809-0d155014e29e', rating: 4.8, reviewCount: 150, type: MenuType.SINGLE },
-    { code: 'TF002', name: 'Tom Yum Soup', category: 'Thai Food', price: 150, description: 'Spicy and sour Thai soup with prawns', image: 'https://images.unsplash.com/photo-1548943487-a2e4e43b4853', rating: 4.7, reviewCount: 120, type: MenuType.SINGLE },
-    { code: 'TF003', name: 'Green Curry', category: 'Thai Food', price: 140, description: 'Thai green curry with chicken and vegetables', image: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd', rating: 4.6, reviewCount: 100, type: MenuType.SINGLE },
-    { code: 'RC001', name: 'Fried Rice', category: 'Rice', price: 100, description: 'Thai-style fried rice with egg', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b', rating: 4.5, reviewCount: 200, type: MenuType.SINGLE },
-    { code: 'RC002', name: 'Basil Chicken Rice', category: 'Rice', price: 110, description: 'Stir-fried basil chicken with rice', image: 'https://images.unsplash.com/photo-1569058242567-93de6f36f8e6', rating: 4.9, reviewCount: 180, type: MenuType.SINGLE },
-    { code: 'SM001', name: 'Grilled Pork Set', category: 'Set Menu', price: 199, description: 'Grilled pork with rice, soup, and side dish', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.7, reviewCount: 90, type: MenuType.SET },
-    { code: 'AP001', name: 'Spring Rolls', category: 'Appetizer', price: 80, description: 'Crispy Thai spring rolls', image: 'https://images.unsplash.com/photo-1544025162-d76694265947', rating: 4.4, reviewCount: 75, type: MenuType.SINGLE },
-    { code: 'DS001', name: 'Mango Sticky Rice', category: 'Dessert', price: 90, description: 'Sweet sticky rice with fresh mango', image: 'https://images.unsplash.com/photo-1621293954908-907159247fc8', rating: 4.8, reviewCount: 130, type: MenuType.SINGLE },
-    { code: 'BV001', name: 'Thai Iced Tea', category: 'Beverage', price: 50, description: 'Classic Thai iced tea with milk', image: 'https://images.unsplash.com/photo-1558857563-b371033873b8', rating: 4.6, reviewCount: 95, type: MenuType.SINGLE },
-    { code: 'BV002', name: 'Coconut Water', category: 'Beverage', price: 45, description: 'Fresh young coconut water', image: 'https://images.unsplash.com/photo-1536657464919-892534f60d6e', rating: 4.5, reviewCount: 60, type: MenuType.SINGLE },
-  ];
-  await prisma.menuItem.createMany({ data: menuItemsData });
-  console.log('Created', menuItemsData.length, 'menu items');
-
-  // Create Menu Items with Nested Options (Steak and Pizza)
-  await addNestedMenuItems();
-
-  // Create Tables
-  const tablesData = [
-    { number: 'T01', capacity: 2, size: 'small', status: TableStatus.AVAILABLE, positionX: 100, positionY: 100 },
-    { number: 'T02', capacity: 2, size: 'small', status: TableStatus.AVAILABLE, positionX: 200, positionY: 100 },
-    { number: 'T03', capacity: 4, size: 'medium', status: TableStatus.AVAILABLE, positionX: 300, positionY: 100 },
-    { number: 'T04', capacity: 4, size: 'medium', status: TableStatus.AVAILABLE, positionX: 100, positionY: 200 },
-    { number: 'T05', capacity: 6, size: 'large', status: TableStatus.AVAILABLE, positionX: 200, positionY: 200 },
-    { number: 'T06', capacity: 8, size: 'large', status: TableStatus.AVAILABLE, positionX: 300, positionY: 200 },
-  ];
-  await prisma.table.createMany({ data: tablesData });
-  console.log('Created', tablesData.length, 'tables');
-
-  // Create Members
-  const membersData = [
-    { memberId: 'M001', name: 'John Doe', phone: '0812345678', email: 'john@example.com', points: 500, tier: 'silver' },
-    { memberId: 'M002', name: 'Jane Smith', phone: '0823456789', email: 'jane@example.com', points: 1200, tier: 'gold' },
-    { memberId: 'M003', name: 'Bob Wilson', phone: '0834567890', email: 'bob@example.com', points: 100, tier: 'bronze' },
-  ];
-  await prisma.member.createMany({ data: membersData });
-  console.log('Created', membersData.length, 'members');
+  // ── Members ────────────────────────────────────────────────────────────────
+  const existingMembers = await prisma.member.count();
+  if (existingMembers === 0) {
+    const membersData = [
+      { memberId: 'M001', name: 'John Doe', phone: '0812345678', email: 'john@example.com', points: 500, tier: 'silver' },
+      { memberId: 'M002', name: 'Jane Smith', phone: '0823456789', email: 'jane@example.com', points: 1200, tier: 'gold' },
+      { memberId: 'M003', name: 'Bob Wilson', phone: '0834567890', email: 'bob@example.com', points: 100, tier: 'bronze' },
+    ];
+    await prisma.member.createMany({ data: membersData });
+    console.log(`Created ${membersData.length} members`);
+  } else {
+    console.log(`Skipped members (${existingMembers} already exist)`);
+  }
 
   console.log('Seeding finished.');
 }

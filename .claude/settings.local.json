@@ -46,7 +46,13 @@
       "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline log --oneline -5)",
       "Bash(git -C /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline ls-files docker-images/jenkins/)",
       "Bash(docker compose *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(pg_isready -h localhost -p 5432)",
+      "Bash(psql -U postgres -h localhost -p 5432 -c \"\\\\l\")",
+      "Read(//tmp/**)",
+      "Bash(xargs ps *)",
+      "Bash(PRISMA_MIGRATE_SKIP_GENERATE=1 npx prisma migrate dev --name add_missing_columns --skip-seed)",
+      "Bash(node /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/scripts/migrate-branch.js)"
     ]
   }
 }

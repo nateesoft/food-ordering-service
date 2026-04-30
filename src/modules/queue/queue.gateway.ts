@@ -10,7 +10,7 @@ import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://0.0.0.0:3000', 'http://0.0.0.0:5000'],
+    origin: ['http://0.0.0.0:3000', 'http://0.0.0.0:3001'],
     credentials: true,
   },
   namespace: '/queue',

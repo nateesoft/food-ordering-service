@@ -41,7 +41,7 @@ cp .env.example .env
 DATABASE_URL="postgresql://postgres:password@localhost:5432/food_ordering"
 JWT_SECRET="your-super-secret-jwt-key"
 JWT_EXPIRES_IN="7d"
-PORT=5000
+PORT=3001
 ```
 
 3. **รัน PostgreSQL ด้วย Docker**
@@ -68,11 +68,11 @@ npx prisma db seed
 npm run start:dev
 ```
 
-Server จะรันที่ http://localhost:5000
+Server จะรันที่ http://localhost:3001
 
 ## API Documentation
 
-เข้าถึง Swagger UI ได้ที่: http://localhost:5000/api/docs
+เข้าถึง Swagger UI ได้ที่: http://localhost:3001/api/docs
 
 ## API Endpoints
 
@@ -174,7 +174,7 @@ Server จะรันที่ http://localhost:5000
 ```javascript
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000/queue');
+const socket = io('http://localhost:3001/queue');
 
 socket.emit('subscribe:queue');
 
