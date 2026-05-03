@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 RUN apk add --no-cache python3 make g++
 RUN npm ci
 RUN npx prisma generate

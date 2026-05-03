@@ -52,7 +52,10 @@
       "Read(//tmp/**)",
       "Bash(xargs ps *)",
       "Bash(PRISMA_MIGRATE_SKIP_GENERATE=1 npx prisma migrate dev --name add_missing_columns --skip-seed)",
-      "Bash(node /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/scripts/migrate-branch.js)"
+      "Bash(node /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/scripts/migrate-branch.js)",
+      "Bash(grep -E \"\\\\.\\(yml|yaml|dockerfile|Dockerfile|env|json|conf|sh\\)$\")",
+      "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/windows-deployment/pipeline/food-ordering-service)",
+      "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/windows-deployment/pipeline/food-ordering-system)"
     ]
   }
 }
