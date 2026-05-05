@@ -55,7 +55,9 @@
       "Bash(node /Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/scripts/migrate-branch.js)",
       "Bash(grep -E \"\\\\.\\(yml|yaml|dockerfile|Dockerfile|env|json|conf|sh\\)$\")",
       "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/windows-deployment/pipeline/food-ordering-service)",
-      "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/windows-deployment/pipeline/food-ordering-system)"
+      "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/windows-deployment/pipeline/food-ordering-system)",
+      "Bash(cp -r .next/static .next/standalone/.next/static)",
+      "Bash(cp -r public .next/standalone/public)"
     ]
   }
 }
