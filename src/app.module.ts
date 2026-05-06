@@ -29,6 +29,7 @@ import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.
 import { TaxInvoiceModule } from './modules/tax-invoice/tax-invoice.module';
 import { KDSModule } from './modules/kds/kds.module';
 import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
     TaxInvoiceModule,
     KDSModule,
     RabbitMQBrokerModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [],
