@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { AuditService } from '../audit/audit.service';
+import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
 import { mockOrder, mockOrderItem } from '../../test/fixtures';
 
@@ -21,6 +23,7 @@ describe('OrdersService', () => {
 
   beforeEach(async () => {
     prisma = createMockPrismaService();
+    prisma.menuItem.findMany.mockResolvedValue([]);
     inventoryService = {
       checkBulkAvailability: jest.fn().mockResolvedValue([]),
       deductStockForOrder: jest.fn().mockResolvedValue({ processed: true, results: [] }),
@@ -36,6 +39,8 @@ describe('OrdersService', () => {
         { provide: InventoryService, useValue: inventoryService },
         { provide: EventEmitter2, useValue: eventEmitter },
         { provide: AuditService, useValue: auditService },
+        { provide: RabbitMQPublisher, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
+        { provide: WINSTON_MODULE_PROVIDER, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() } },
       ],
     }).compile();
 

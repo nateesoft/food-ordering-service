@@ -61,7 +61,8 @@
       "Bash(xargs ls *)",
       "Bash(ssh-keygen -t rsa -b 4096 -C \"jenkins-mac-deploy\" -f ~/.ssh/id_rsa_jenkins -N \"\")",
       "Bash(cat ~/.ssh/id_rsa_jenkins.pub)",
-      "Bash(chmod 600 ~/.ssh/authorized_keys)"
+      "Bash(chmod 600 ~/.ssh/authorized_keys)",
+      "Bash(npm test *)"
     ]
   }
 }
