@@ -1,50 +1,78 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RabbitMQFileLogger } from '../../common/logger/rabbitmq-file-logger.service';
 import { RabbitMQMessageEnvelope, ROUTING_KEYS } from './events';
 
 type MqMessage = RabbitMQMessageEnvelope<unknown>;
 
+interface SubscribeOptions {
+  exchange: string;
+  routingKey: string;
+  queue: string;
+  queueOptions?: Record<string, unknown>;
+}
+
 @Injectable()
-export class RabbitMQConsumer {
+export class RabbitMQConsumer implements OnApplicationBootstrap {
   private readonly logger = new Logger(RabbitMQConsumer.name);
 
   constructor(
+    private readonly amqpConnection: AmqpConnection,
     private readonly prisma: PrismaService,
     private readonly fileLogger: RabbitMQFileLogger,
   ) {}
 
-  @RabbitSubscribe({
-    exchange: 'food_ordering.events',
-    routingKey: ROUTING_KEYS.ORDER_CREATED,
-    queue: 'food-ordering-service.order-created-log',
-    queueOptions: { durable: true },
-  })
+  onApplicationBootstrap() {
+    this.registerSubscriber(
+      ROUTING_KEYS.ORDER_CREATED,
+      'food-ordering-service.order-created-log',
+      (msg) => this.handleOrderCreated(msg),
+    );
+    this.registerSubscriber(
+      ROUTING_KEYS.ORDER_STATUS_CHANGED,
+      'food-ordering-service.order-status-changed-log',
+      (msg) => this.handleOrderStatusChanged(msg),
+    );
+    this.registerSubscriber(
+      ROUTING_KEYS.ORDER_CANCELLED,
+      'food-ordering-service.order-cancelled-log',
+      (msg) => this.handleOrderCancelled(msg),
+    );
+  }
+
+  private registerSubscriber(
+    routingKey: string,
+    queue: string,
+    handler: (msg: unknown) => Promise<void>,
+  ) {
+    const opts: SubscribeOptions = {
+      exchange: 'food_ordering.events',
+      routingKey,
+      queue,
+      queueOptions: { durable: true },
+    };
+    // fire-and-forget: addSetup resolves immediately, consumer activates when RabbitMQ connects
+    void this.amqpConnection.createSubscriber(
+      handler,
+      opts as Parameters<typeof this.amqpConnection.createSubscriber>[1],
+      queue,
+    );
+    this.logger.log(`Registered subscriber: ${routingKey} -> ${queue}`);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleOrderCreated(message: any): Promise<void> {
+  private async handleOrderCreated(message: any): Promise<void> {
     await this.processEvent(message as MqMessage, ROUTING_KEYS.ORDER_CREATED);
   }
 
-  @RabbitSubscribe({
-    exchange: 'food_ordering.events',
-    routingKey: ROUTING_KEYS.ORDER_STATUS_CHANGED,
-    queue: 'food-ordering-service.order-status-changed-log',
-    queueOptions: { durable: true },
-  })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleOrderStatusChanged(message: any): Promise<void> {
+  private async handleOrderStatusChanged(message: any): Promise<void> {
     await this.processEvent(message as MqMessage, ROUTING_KEYS.ORDER_STATUS_CHANGED);
   }
 
-  @RabbitSubscribe({
-    exchange: 'food_ordering.events',
-    routingKey: ROUTING_KEYS.ORDER_CANCELLED,
-    queue: 'food-ordering-service.order-cancelled-log',
-    queueOptions: { durable: true },
-  })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleOrderCancelled(message: any): Promise<void> {
+  private async handleOrderCancelled(message: any): Promise<void> {
     await this.processEvent(message as MqMessage, ROUTING_KEYS.ORDER_CANCELLED);
   }
 

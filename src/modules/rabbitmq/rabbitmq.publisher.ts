@@ -33,6 +33,11 @@ export class RabbitMQPublisher {
       payload,
     };
 
+    if (!this.amqpConnection.connected) {
+      this.logger.warn(`RabbitMQ not connected, skipping publish [${routingKey}]`);
+      return;
+    }
+
     try {
       await this.amqpConnection.publish(this.exchange, routingKey, message, {
         persistent: true,

@@ -26,9 +26,9 @@ import { RabbitMQFileLogger } from '../../common/logger/rabbitmq-file-logger.ser
           'amqp://guest:guest@localhost:5672',
         ),
         connectionInitOptions: {
-          // Don't block app startup if RabbitMQ is unavailable
           wait: false,
         },
+        registerHandlers: false,
         prefetchCount: Number(configService.get('RABBITMQ_PREFETCH', 10)),
       }),
     }),
