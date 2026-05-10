@@ -66,10 +66,12 @@
       "Bash(find /Users/nateelive/Documents/Projects/GithubProject -maxdepth 2 -name \"package.json\" | xargs grep -l '\"build\"' 2>/dev/null | head -20)",
       "Read(//Users/nateelive/Documents/Projects/GithubProject/**)",
       "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline/findig-backend-service /Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline/findig-sale-online)",
-      "Bash(node -e \"const pkg = require\\('/Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/node_modules/@golevelup/nestjs-rabbitmq/package.json'\\); console.log\\('version:', pkg.version\\)\")"
+      "Bash(node -e \"const pkg = require\\('/Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/node_modules/@golevelup/nestjs-rabbitmq/package.json'\\); console.log\\('version:', pkg.version\\)\")",
+      "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/docker-images/elk/logstash/pipeline)"
     ],
     "additionalDirectories": [
-      "/Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline"
+      "/Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline",
+      "/Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/docker-images/elk/logstash"
     ]
   }
 }

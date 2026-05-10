@@ -6,7 +6,7 @@ dist
 /generated/prisma
 
 public/*
-.claude
+.claude*
 
 # Log files
 logs/*.log
