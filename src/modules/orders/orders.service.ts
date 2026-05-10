@@ -1,6 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { Logger } from 'winston';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderStatusDto, SplitOrderDto } from './dto';
 import { OrderStatus } from '@prisma/client';
@@ -12,8 +10,9 @@ import { ROUTING_KEYS, OrderCreatedPayload, OrderStatusChangedPayload, OrderItem
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private prisma: PrismaService,
     private inventoryService: InventoryService,
     private eventEmitter: EventEmitter2,
@@ -77,14 +76,14 @@ export class OrdersService {
       },
     });
 
-    this.logger.info('Order created', {
+    this.logger.log({
       event: 'ORDER_CREATED',
       orderId: order.orderId,
       branchId,
       tableNumber: order.tableNumber,
       totalAmount: order.totalAmount,
       itemCount: order.items.length,
-    });
+    }, 'Order created');
 
     // Deduct stock from inventory system
     this.deductInventoryStock(order.orderId, items);
@@ -133,23 +132,23 @@ export class OrdersService {
       );
 
       if (result.processed) {
-        this.logger.info('Stock deduction completed', {
+        this.logger.log({
           event: 'INVENTORY_DEDUCTED',
           orderId,
           ingredientCount: result.results.length,
-        });
+        }, 'Stock deduction completed');
       } else {
-        this.logger.info('No stock deduction needed', {
+        this.logger.log({
           event: 'INVENTORY_SKIPPED',
           orderId,
-        });
+        }, 'No stock deduction needed');
       }
     } catch (error) {
-      this.logger.error('Stock deduction failed', {
+      this.logger.error({
         event: 'INVENTORY_DEDUCT_FAILED',
         orderId,
         error: error instanceof Error ? error.message : String(error),
-      });
+      }, 'Stock deduction failed');
     }
   }
 
@@ -283,16 +282,16 @@ export class OrdersService {
             quantity: item.quantity,
           })),
         );
-        this.logger.info('Stock restored for cancelled order', {
+        this.logger.log({
           event: 'INVENTORY_RESTORED',
           orderId: order.orderId,
-        });
+        }, 'Stock restored for cancelled order');
       } catch (error) {
-        this.logger.error('Failed to restore stock for cancelled order', {
+        this.logger.error({
           event: 'INVENTORY_RESTORE_FAILED',
           orderId: order.orderId,
           error: error instanceof Error ? error.message : String(error),
-        });
+        }, 'Failed to restore stock for cancelled order');
       }
     }
 
@@ -311,14 +310,14 @@ export class OrdersService {
     });
 
     const isCancelled = updateStatusDto.status === OrderStatus.CANCELLED;
-    this.logger.info(isCancelled ? 'Order cancelled' : 'Order status changed', {
+    this.logger.log({
       event: isCancelled ? 'ORDER_CANCELLED' : 'ORDER_STATUS_CHANGED',
       orderId: updatedOrder.orderId,
       branchId: updatedOrder.branchId,
       tableNumber: updatedOrder.tableNumber,
       previousStatus: order.status,
       currentStatus: updatedOrder.status,
-    });
+    }, isCancelled ? 'Order cancelled' : 'Order status changed');
 
     // Publish to RabbitMQ (fire-and-forget)
     this.publishOrderStatusChanged(order, updatedOrder);
@@ -360,7 +359,7 @@ export class OrdersService {
       data: { status },
     });
 
-    this.logger.info('Order item status changed', {
+    this.logger.log({
       event: 'ORDER_ITEM_STATUS_CHANGED',
       orderId: order.orderId,
       branchId: order.branchId,
@@ -368,7 +367,7 @@ export class OrdersService {
       menuItemId: item.menuItemId,
       previousStatus: item.status,
       currentStatus: status,
-    });
+    }, 'Order item status changed');
 
     // Emit event for WebSocket
     this.eventEmitter.emit('order.itemStatusChanged', {
@@ -596,14 +595,14 @@ export class OrdersService {
       return results;
     });
 
-    this.logger.info('Order split', {
+    this.logger.log({
       event: 'ORDER_SPLIT',
       originalOrderId: original.orderId,
       branchId: original.branchId,
       tableNumber: original.tableNumber,
       groupCount: dto.groups.length,
       newOrderIds: newOrders.map((o) => o.orderId),
-    });
+    }, 'Order split');
 
     // Audit log
     this.auditService.log({

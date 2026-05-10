@@ -67,7 +67,9 @@
       "Read(//Users/nateelive/Documents/Projects/GithubProject/**)",
       "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline/findig-backend-service /Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline/findig-sale-online)",
       "Bash(node -e \"const pkg = require\\('/Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/node_modules/@golevelup/nestjs-rabbitmq/package.json'\\); console.log\\('version:', pkg.version\\)\")",
-      "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/docker-images/elk/logstash/pipeline)"
+      "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/docker-images/elk/logstash/pipeline)",
+      "Bash(sudo chown -R 501:20 \"/Users/nateelive/.npm\")",
+      "Bash(npx jest *)"
     ],
     "additionalDirectories": [
       "/Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline",

@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
@@ -40,7 +39,6 @@ describe('OrdersService', () => {
         { provide: EventEmitter2, useValue: eventEmitter },
         { provide: AuditService, useValue: auditService },
         { provide: RabbitMQPublisher, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
-        { provide: WINSTON_MODULE_PROVIDER, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() } },
       ],
     }).compile();
 
