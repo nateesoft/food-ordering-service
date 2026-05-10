@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { ConfigService } from '@nestjs/config';
+import { RabbitMQFileLogger } from '../../common/logger/rabbitmq-file-logger.service';
 import { RabbitMQMessageEnvelope, RoutingKey } from './events';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class RabbitMQPublisher {
   constructor(
     private readonly amqpConnection: AmqpConnection,
     private readonly configService: ConfigService,
+    private readonly fileLogger: RabbitMQFileLogger,
   ) {
     this.exchange = this.configService.get<string>(
       'RABBITMQ_EXCHANGE',
@@ -34,7 +36,8 @@ export class RabbitMQPublisher {
     };
 
     if (!this.amqpConnection.connected) {
-      this.logger.warn(`RabbitMQ not connected, skipping publish [${routingKey}]`);
+      this.logger.warn(`RabbitMQ not connected, dropping publish [${routingKey}] eventId=${message.eventId}`);
+      this.fileLogger.logDropped(routingKey, message.eventId, 'not_connected');
       return;
     }
 
@@ -48,6 +51,7 @@ export class RabbitMQPublisher {
       this.logger.error(
         `Failed to publish [${routingKey}]: ${error?.message ?? error}`,
       );
+      this.fileLogger.logFailed(routingKey, message.eventId, error?.message ?? String(error));
     }
   }
 }

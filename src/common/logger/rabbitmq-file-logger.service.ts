@@ -56,4 +56,14 @@ export class RabbitMQFileLogger implements OnModuleInit, OnModuleDestroy {
       error,
     });
   }
+
+  logDropped(routingKey: string, eventId: string, reason: string): void {
+    this.write({
+      level: 'WARN',
+      event: 'MQ_DROPPED',
+      routingKey,
+      eventId,
+      reason,
+    });
+  }
 }

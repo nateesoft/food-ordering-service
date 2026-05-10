@@ -26,7 +26,13 @@ import { RabbitMQFileLogger } from '../../common/logger/rabbitmq-file-logger.ser
           'amqp://guest:guest@localhost:5672',
         ),
         connectionInitOptions: {
-          wait: false,
+          wait: true,
+          timeout: 10000,
+          reject: true,
+        },
+        connectionManagerOptions: {
+          heartbeatIntervalInSeconds: 5,
+          reconnectTimeInSeconds: 5,
         },
         registerHandlers: false,
         prefetchCount: Number(configService.get('RABBITMQ_PREFETCH', 10)),
