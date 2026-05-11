@@ -69,7 +69,16 @@
       "Bash(node -e \"const pkg = require\\('/Users/nateelive/Documents/Projects/GithubProject/food-ordering-service/node_modules/@golevelup/nestjs-rabbitmq/package.json'\\); console.log\\('version:', pkg.version\\)\")",
       "Bash(mkdir -p /Users/nateelive/Documents/Projects/GithubProject/deployment-pipeline/docker-images/elk/logstash/pipeline)",
       "Bash(sudo chown -R 501:20 \"/Users/nateelive/.npm\")",
-      "Bash(npx jest *)"
+      "Bash(npx jest *)",
+      "Bash(node -e \"const m = require\\('@types/multer/package.json'\\); console.log\\(m.version\\)\")",
+      "Bash(sed -n '370,385p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/\\\\[branchId\\\\]/admin/menu-management/page.tsx)",
+      "Bash(sed -n '595,610p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/\\\\[branchId\\\\]/admin/menu-management/page.tsx)",
+      "Bash(sed -n '488,498p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/\\\\[branchId\\\\]/pos/components/POSMenuOrder.tsx)",
+      "Bash(sed -n '598,666p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/\\\\[branchId\\\\]/kiosk/page.tsx)",
+      "Bash(sed -n '1,10p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/\\\\[branchId\\\\]/kiosk/page.tsx)",
+      "Bash(sed -n '1,10p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/kiosk/page.tsx)",
+      "Bash(sed -n '602,608p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/\\\\[branchId\\\\]/kiosk/page.tsx)",
+      "Bash(sed -n '659,665p' /Users/nateelive/Documents/Projects/GithubProject/food-ordering-system/app/\\\\[branchId\\\\]/kiosk/page.tsx)"
     ],
     "additionalDirectories": [
       "/Users/nateelive/Documents/Projects/GithubProject/findig-service/pipeline",
