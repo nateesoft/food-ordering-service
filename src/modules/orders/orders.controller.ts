@@ -35,13 +35,15 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get all orders' })
   @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
   @ApiQuery({ name: 'tableNumber', required: false })
+  @ApiQuery({ name: 'sessionId', required: false })
   @ApiResponse({ status: 200, description: 'List of orders' })
   findAll(
     @BranchId() branchId: number,
     @Query('status') status?: OrderStatus,
     @Query('tableNumber') tableNumber?: string,
+    @Query('sessionId') sessionId?: string,
   ) {
-    return this.ordersService.findAll(status, tableNumber, branchId);
+    return this.ordersService.findAll(status, tableNumber, branchId, sessionId);
   }
 
   @Get('today')

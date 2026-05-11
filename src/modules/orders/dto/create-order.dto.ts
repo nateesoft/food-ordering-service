@@ -5,6 +5,7 @@ import {
   IsArray,
   ValidateNested,
   IsEnum,
+  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -68,10 +69,10 @@ export class CreateOrderDto {
   @IsOptional()
   vat?: number;
 
-  @ApiPropertyOptional({ example: 1, description: 'Table session ID' })
-  @IsNumber()
+  @ApiPropertyOptional({ example: '1fcd142e-b993-4de0-bb10-232ecc282560', description: 'Table session UUID' })
+  @IsUUID()
   @IsOptional()
-  sessionId?: number;
+  sessionId?: string;
 
   @ApiProperty({ type: [OrderItemDto] })
   @IsArray()

@@ -198,7 +198,7 @@ export class OrdersService {
     this.rabbitMQPublisher.publish(routingKey, payload, updatedOrder.branchId);
   }
 
-  async findAll(status?: OrderStatus, tableNumber?: string, branchId?: number) {
+  async findAll(status?: OrderStatus, tableNumber?: string, branchId?: number, sessionId?: string) {
     const where: any = {};
 
     if (branchId) {
@@ -211,6 +211,10 @@ export class OrdersService {
 
     if (tableNumber) {
       where.tableNumber = tableNumber;
+    }
+
+    if (sessionId) {
+      where.sessionId = sessionId;
     }
 
     return this.prisma.order.findMany({
