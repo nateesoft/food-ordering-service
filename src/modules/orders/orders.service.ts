@@ -1,4 +1,5 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderStatusDto, SplitOrderDto } from './dto';
 import { OrderStatus } from '@prisma/client';
@@ -7,6 +8,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditService } from '../audit/audit.service';
 import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
 import { ROUTING_KEYS, OrderCreatedPayload, OrderStatusChangedPayload, OrderItemDetail } from '../rabbitmq/events';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class OrdersService {
@@ -18,6 +20,7 @@ export class OrdersService {
     private eventEmitter: EventEmitter2,
     private auditService: AuditService,
     private rabbitMQPublisher: RabbitMQPublisher,
+    private redisService: RedisService,
   ) {}
 
   private generateOrderId(): string {
@@ -26,8 +29,52 @@ export class OrdersService {
     return `ORD-${timestamp}-${random}`;
   }
 
-  async create(createOrderDto: CreateOrderDto, branchId?: number) {
+  async create(createOrderDto: CreateOrderDto, branchId?: number, cookieSessionId?: string): Promise<{ order: any; newSessionId?: string }> {
     const { items, ...orderData } = createOrderDto;
+
+    // Resolve the effective sessionId: body > cookie > generate new
+    let effectiveSessionId: string | undefined;
+    let newSessionId: string | undefined;
+
+    const requestedSessionId = createOrderDto.sessionId ?? cookieSessionId;
+
+    if (requestedSessionId) {
+      const session = await this.redisService.validateSession(requestedSessionId);
+      if (session) {
+        // If tableNumber is provided, verify the session belongs to this table
+        if (createOrderDto.tableNumber && session.tableNumber !== createOrderDto.tableNumber) {
+          throw new ForbiddenException({
+            code: 'SESSION_TABLE_MISMATCH',
+            message: 'Session ไม่ตรงกับโต๊ะนี้ กรุณาสแกน QR Code ใหม่',
+          });
+        }
+        effectiveSessionId = requestedSessionId;
+      }
+      // If session not found in Redis, treat as no session (expired or cleared after payment)
+    }
+
+    if (!effectiveSessionId && createOrderDto.tableNumber) {
+      // Check if this table already has an active session (another customer still ordering/not billed)
+      const activeSessionId = await this.redisService.getActiveSessionForTable(
+        createOrderDto.tableNumber,
+        branchId ?? 0,
+      );
+      if (activeSessionId) {
+        throw new ForbiddenException({
+          code: 'TABLE_SESSION_CONFLICT',
+          message: 'โต๊ะนี้ยังมีรายการที่ยังไม่ได้ชำระเงิน กรุณาติดต่อพนักงาน',
+        });
+      }
+      // Register session: prefer client-provided sessionId, fall back to generating a new one
+      if (requestedSessionId) {
+        effectiveSessionId = requestedSessionId;
+        await this.redisService.registerSession(requestedSessionId, createOrderDto.tableNumber, branchId ?? 0);
+      } else {
+        newSessionId = randomUUID();
+        effectiveSessionId = newSessionId;
+        await this.redisService.registerSession(newSessionId, createOrderDto.tableNumber, branchId ?? 0);
+      }
+    }
 
     // Pre-check stock availability
     const unavailableItems = await this.inventoryService.checkBulkAvailability(
@@ -51,6 +98,7 @@ export class OrdersService {
     const order = await this.prisma.order.create({
       data: {
         ...orderData,
+        sessionId: effectiveSessionId,
         branchId,
         orderId: this.generateOrderId(),
         items: {
@@ -110,12 +158,12 @@ export class OrdersService {
       },
       metadata: {
         tableNumber: order.tableNumber,
-        sessionId: createOrderDto.sessionId,
+        sessionId: effectiveSessionId,
         itemCount: order.items.length,
       },
     });
 
-    return order;
+    return { order, newSessionId };
   }
 
   private async deductInventoryStock(

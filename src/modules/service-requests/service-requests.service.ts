@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { CreateServiceRequestDto, UpdateServiceRequestDto } from './dto';
 import { OrderStatus, ServiceRequestStatus, ServiceRequestType, TableStatus } from '@prisma/client';
 
 @Injectable()
 export class ServiceRequestsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redisService: RedisService,
+  ) {}
 
   private generateRequestId(): string {
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -32,6 +36,10 @@ export class ServiceRequestsService {
         },
         data: { status: TableStatus.BILLING },
       });
+      // Clear Redis session so the table is no longer "occupied" for new customers
+      if (branchId) {
+        this.redisService.clearSessionForTable(tableNumber, branchId).catch(() => {});
+      }
     }
 
     return serviceRequest;

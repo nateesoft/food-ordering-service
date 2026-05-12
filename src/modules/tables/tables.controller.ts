@@ -26,6 +26,19 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { TableStatus } from '@prisma/client';
 import { StaffService } from '../staff/staff.service';
+import { RedisService } from '../redis/redis.service';
+import { IsString, IsUUID } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+class RegisterSessionDto {
+  @ApiProperty({ example: '1fcd142e-b993-4de0-bb10-232ecc282560' })
+  @IsUUID()
+  sessionId: string;
+
+  @ApiProperty({ example: 'A1' })
+  @IsString()
+  tableNumber: string;
+}
 
 @ApiTags('Tables')
 @Controller('tables')
@@ -33,6 +46,7 @@ export class TablesController {
   constructor(
     private readonly tablesService: TablesService,
     private readonly staffService: StaffService,
+    private readonly redisService: RedisService,
   ) {}
 
   @Get()
@@ -92,6 +106,52 @@ export class TablesController {
   @ApiResponse({ status: 404, description: 'Table not found' })
   findByNumber(@Param('number') number: string) {
     return this.tablesService.findByNumber(number);
+  }
+
+  @Post('register-session')
+  @ApiOperation({ summary: 'Register a sessionId in Redis (TTL 3h)' })
+  @ApiResponse({ status: 201, description: 'Session registered' })
+  async registerSession(
+    @BranchId() branchId: number,
+    @Body() dto: RegisterSessionDto,
+  ) {
+    await this.redisService.registerSession(dto.sessionId, dto.tableNumber, branchId);
+    return { message: 'Session registered', sessionId: dto.sessionId, ttl: 10800 };
+  }
+
+  @Get('validate-session/:sessionId')
+  @ApiOperation({ summary: 'Check if a sessionId is valid in Redis' })
+  @ApiResponse({ status: 200, description: 'Session validity' })
+  async validateSession(@Param('sessionId') sessionId: string) {
+    const session = await this.redisService.validateSession(sessionId);
+    const ttl = session ? await this.redisService.getSessionTTL(sessionId) : -1;
+    return { valid: !!session, session, ttl };
+  }
+
+  @Get('number/:tableNumber/check-access')
+  @ApiOperation({ summary: 'Check if a customer can access a table to order' })
+  @ApiQuery({ name: 'sessionId', required: false })
+  @ApiResponse({ status: 200, description: 'Access check result' })
+  async checkTableAccess(
+    @BranchId() branchId: number,
+    @Param('tableNumber') tableNumber: string,
+    @Query('sessionId') sessionId?: string,
+  ) {
+    const activeSessionId = await this.redisService.getActiveSessionForTable(tableNumber, branchId);
+
+    if (!activeSessionId) {
+      return { canAccess: true, reason: 'NO_ACTIVE_SESSION' };
+    }
+
+    if (sessionId && activeSessionId === sessionId) {
+      return { canAccess: true, reason: 'VALID_SESSION' };
+    }
+
+    return {
+      canAccess: false,
+      reason: 'TABLE_OCCUPIED',
+      message: 'โต๊ะนี้ยังมีรายการที่ยังไม่ได้ชำระเงิน กรุณาติดต่อพนักงาน',
+    };
   }
 
   @Get('number/:number/staff')

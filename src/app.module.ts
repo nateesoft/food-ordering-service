@@ -28,6 +28,7 @@ import { TaxInvoiceModule } from './modules/tax-invoice/tax-invoice.module';
 import { KDSModule } from './modules/kds/kds.module';
 import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
 import { HealthModule } from './modules/health/health.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { HealthModule } from './modules/health/health.module';
     KDSModule,
     RabbitMQBrokerModule,
     HealthModule,
+    RedisModule,
   ],
   controllers: [],
   providers: [],

@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   ParseIntPipe,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -13,6 +14,7 @@ import {
   ApiResponse,
   ApiQuery,
 } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto, CreateMergedPaymentDto } from './dto';
 import { PaymentMethod } from '@prisma/client';
@@ -28,8 +30,14 @@ export class PaymentsController {
   @ApiResponse({ status: 201, description: 'Payment created' })
   @ApiResponse({ status: 400, description: 'Invalid payment' })
   @ApiResponse({ status: 409, description: 'Order already paid' })
-  create(@BranchId() branchId: number, @Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentsService.createPayment(createPaymentDto, branchId);
+  async create(
+    @BranchId() branchId: number,
+    @Body() createPaymentDto: CreatePaymentDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.paymentsService.createPayment(createPaymentDto, branchId);
+    res.clearCookie('session_id', { path: '/' });
+    return result;
   }
 
   @Get()
@@ -76,11 +84,14 @@ export class PaymentsController {
   @ApiResponse({ status: 201, description: 'Merged payment created' })
   @ApiResponse({ status: 400, description: 'Invalid merge request' })
   @ApiResponse({ status: 409, description: 'One or more orders already paid' })
-  createMerged(
+  async createMerged(
     @BranchId() branchId: number,
     @Body() dto: CreateMergedPaymentDto,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.paymentsService.createMergedPayment(dto, branchId);
+    const result = await this.paymentsService.createMergedPayment(dto, branchId);
+    res.clearCookie('session_id', { path: '/' });
+    return result;
   }
 
   @Get(':id')

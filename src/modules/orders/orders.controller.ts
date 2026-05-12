@@ -7,6 +7,8 @@ import {
   Param,
   Query,
   ParseIntPipe,
+  Req,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,6 +16,7 @@ import {
   ApiResponse,
   ApiQuery,
 } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, UpdateOrderStatusDto, SplitOrderDto } from './dto';
 import { OrderStatus } from '@prisma/client';
@@ -27,8 +30,26 @@ export class OrdersController {
   @Post()
   @ApiOperation({ summary: 'Create new order' })
   @ApiResponse({ status: 201, description: 'Order created successfully' })
-  create(@BranchId() branchId: number, @Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto, branchId);
+  async create(
+    @BranchId() branchId: number,
+    @Body() createOrderDto: CreateOrderDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const cookieSessionId: string | undefined = (req.cookies as Record<string, string>)?.['session_id'];
+    const result = await this.ordersService.create(createOrderDto, branchId, cookieSessionId);
+
+    const sessionIdToSet = result.newSessionId ?? createOrderDto.sessionId ?? cookieSessionId;
+    if (sessionIdToSet) {
+      res.cookie('session_id', sessionIdToSet, {
+        httpOnly: false,
+        maxAge: 3 * 60 * 60 * 1000,
+        sameSite: 'lax',
+        path: '/',
+      });
+    }
+
+    return result.order;
   }
 
   @Get()

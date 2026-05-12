@@ -11,6 +11,7 @@ import { CreatePaymentDto, CreateMergedPaymentDto } from './dto';
 import { PaymentStatus, PaymentMethod } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditService } from '../audit/audit.service';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class PaymentsService {
@@ -20,6 +21,7 @@ export class PaymentsService {
     private promotionsService: PromotionsService,
     private eventEmitter: EventEmitter2,
     private auditService: AuditService,
+    private redisService: RedisService,
   ) {}
 
   private async generateReceiptNumber(branchId?: number, offset = 0): Promise<string> {
@@ -251,6 +253,11 @@ export class PaymentsService {
       if (pointsEarned > 0) {
         await this.membersService.addPoints(memberId, pointsEarned);
       }
+    }
+
+    // Clear Redis session for the table (bill is paid — table is now free)
+    if (order.tableNumber && branchId) {
+      this.redisService.clearSessionForTable(order.tableNumber, branchId).catch(() => {});
     }
 
     // Emit webhook event
@@ -523,6 +530,12 @@ export class PaymentsService {
       if (pointsEarned > 0) {
         await this.membersService.addPoints(memberId, pointsEarned);
       }
+    }
+
+    // Clear Redis session for the table (bill is paid — table is now free)
+    const tableNumber = orders[0].tableNumber;
+    if (tableNumber && branchId) {
+      this.redisService.clearSessionForTable(tableNumber, branchId).catch(() => {});
     }
 
     // Emit webhook event
