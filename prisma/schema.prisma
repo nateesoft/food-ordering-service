@@ -17,6 +17,8 @@ model Branch {
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  consoleUserId   String?
+  consoleUser     ConsoleUser?     @relation(fields: [consoleUserId], references: [id])
   menuItems       MenuItem[]
   orders          Order[]
   queueTickets    QueueTicket[]
@@ -36,6 +38,8 @@ model Branch {
   taxInvoices         TaxInvoice[]
   kdsStations         KDSStation[]
   systemSettings      SystemSetting[]
+
+  @@index([consoleUserId])
 }
 
 model MenuItem {
@@ -885,4 +889,32 @@ model MqEventLog {
   @@index([status])
   @@index([branchId])
   @@index([createdAt])
+}
+
+// ==========================================
+// Console Auth (food-ordering-console)
+// ==========================================
+
+enum ConsoleRole {
+  CUSTOMER
+  SYSTEM_ADMIN
+
+  @@schema("food_ordering")
+}
+
+model ConsoleUser {
+  @@schema("food_ordering")
+  id               String      @id @default(uuid())
+  email            String      @unique
+  password         String
+  role             ConsoleRole @default(CUSTOMER)
+  companyName      String
+  companyAddress   String?
+  companyPhone     String?
+  companyEmail     String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  branches         Branch[]
 }

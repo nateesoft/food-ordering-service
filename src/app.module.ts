@@ -5,6 +5,7 @@ import { HttpLoggerMiddleware } from './common/logger/http-logger.middleware';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ConsoleAuthModule } from './modules/console-auth/console-auth.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { AddonsModule } from './modules/addons/addons.module';
 import { OrdersModule } from './modules/orders/orders.module';
@@ -40,6 +41,7 @@ import { RedisModule } from './modules/redis/redis.module';
     PrismaModule,
     BranchModule,
     AuthModule,
+    ConsoleAuthModule,
     MenuModule,
     AddonsModule,
     OrdersModule,
