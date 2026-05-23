@@ -3,12 +3,36 @@ import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
 import pino, { Level } from 'pino';
 import build from 'pino-elasticsearch';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 @Global()
 @Module({
   imports: [
     PinoLoggerModule.forRootAsync({
       useFactory: () => {
         const level = (process.env.LOG_LEVEL || 'info') as Level;
+
+        // ── Development: pino-pretty → colored, readable output ──
+        if (isDev) {
+          return {
+            pinoHttp: {
+              level,
+              transport: {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  translateTime: 'SYS:HH:MM:ss.l',
+                  ignore: 'pid,hostname,req,res,responseTime',
+                  messageKey: 'msg',
+                  levelFirst: true,
+                  singleLine: false,
+                },
+              },
+            },
+          };
+        }
+
+        // ── Production: JSON + optional Elasticsearch ──
         const streams: pino.StreamEntry[] = [
           { stream: process.stdout, level },
         ];
@@ -35,7 +59,10 @@ import build from 'pino-elasticsearch';
           esStream.on('insertError', (err) =>
             console.error('Elasticsearch insert error:', err),
           );
-          streams.push({ stream: esStream as unknown as NodeJS.WritableStream, level });
+          streams.push({
+            stream: esStream as unknown as NodeJS.WritableStream,
+            level,
+          });
         }
 
         return {
