@@ -38,6 +38,14 @@ export class BranchController {
     return this.branchService.findAll(isActiveBoolean);
   }
 
+  @Get('code/:code')
+  @ApiOperation({ summary: 'Get branch by code (public, used by QR code URL)' })
+  @ApiResponse({ status: 200, description: 'Branch details with company info' })
+  @ApiResponse({ status: 404, description: 'Branch not found' })
+  findByCode(@Param('code') code: string) {
+    return this.branchService.findByCode(code);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get branch by ID' })
   @ApiResponse({ status: 200, description: 'Branch details' })

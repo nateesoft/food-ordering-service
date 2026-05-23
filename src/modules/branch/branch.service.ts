@@ -27,6 +27,17 @@ export class BranchService {
     return branch;
   }
 
+  async findByCode(code: string) {
+    const branch = await this.prisma.branch.findUnique({
+      where: { code },
+      include: { consoleUser: { select: { companyName: true, companyPhone: true, companyEmail: true } } },
+    });
+    if (!branch) {
+      throw new NotFoundException(`Branch with code '${code}' not found`);
+    }
+    return branch;
+  }
+
   async create(dto: CreateBranchDto) {
     const existing = await this.prisma.branch.findUnique({
       where: { code: dto.code },

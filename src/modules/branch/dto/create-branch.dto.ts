@@ -19,4 +19,9 @@ export class CreateBranchDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiPropertyOptional({ description: 'Branch logo URL' })
+  @IsOptional()
+  @IsString()
+  logo?: string;
 }

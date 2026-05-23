@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class OpenTableSessionDto {
@@ -26,4 +26,9 @@ export class OpenTableSessionDto {
   @IsString()
   @IsOptional()
   orderType?: string;
+
+  @ApiPropertyOptional({ example: '1fcd142e-b993-4de0-bb10-232ecc282560', description: 'UUID from QR code URL ?sessionId=' })
+  @IsUUID()
+  @IsOptional()
+  sessionId?: string;
 }

@@ -14,6 +14,7 @@ model Branch {
   code            String           @unique
   address         String?
   phone           String?
+  logo            String?
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -408,6 +409,8 @@ enum UserRole {
   ADMIN
   STAFF
   CHEF
+  CASHIER  // พนักงานชำระเงิน
+  WAITER   // พนักงานเสิร์ฟ
 
   @@schema("food_ordering")
 }
@@ -685,6 +688,7 @@ model WebhookDelivery {
 model TableSession {
   @@schema("food_ordering")
   id                  Int       @id @default(autoincrement())
+  sessionId           String?   @unique  // UUID from QR code URL ?sessionId=
   tableId             Int
   table               Table     @relation(fields: [tableId], references: [id])
   openedBy            String
@@ -701,6 +705,7 @@ model TableSession {
   @@index([tableId])
   @@index([status])
   @@index([branchId])
+  @@index([sessionId])
 }
 
 enum AuditAction {
@@ -917,4 +922,29 @@ model ConsoleUser {
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   branches         Branch[]
+  company          Company?
+}
+
+// ==========================================
+// Company
+// ==========================================
+
+model Company {
+  @@schema("food_ordering")
+  id            Int      @id @default(autoincrement())
+  name          String
+  nameEn        String?
+  address       String?
+  phone         String?
+  email         String?
+  logo          String?
+  website       String?
+  description   String?
+  businessType  String?
+  consoleUserId String   @unique
+  consoleUser   ConsoleUser @relation(fields: [consoleUserId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([consoleUserId])
 }

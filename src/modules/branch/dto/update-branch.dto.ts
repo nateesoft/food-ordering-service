@@ -26,4 +26,9 @@ export class UpdateBranchDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  logo?: string;
 }

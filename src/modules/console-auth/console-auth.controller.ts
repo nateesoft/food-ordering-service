@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   UseGuards,
   Request,
@@ -21,6 +22,7 @@ import {
   ConsoleLoginDto,
   ConsoleForgotPasswordDto,
   ConsoleResetPasswordDto,
+  UpdateCompanyDto,
 } from './dto';
 import { ConsoleJwtAuthGuard } from './guards/console-jwt-auth.guard';
 import { ConsoleRolesGuard } from './guards/console-roles.guard';
@@ -77,6 +79,27 @@ export class ConsoleAuthController implements OnModuleInit {
   @ApiResponse({ status: 400, description: 'Token ไม่ถูกต้องหรือหมดอายุ' })
   async resetPassword(@Body() dto: ConsoleResetPasswordDto) {
     return this.consoleAuthService.resetPassword(dto);
+  }
+
+  @Get('company')
+  @UseGuards(ConsoleJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'ดูข้อมูลบริษัท' })
+  @ApiResponse({ status: 200, description: 'ข้อมูลบริษัท' })
+  async getCompany(@Request() req: { user: { userId: string } }) {
+    return this.consoleAuthService.getCompany(req.user.userId);
+  }
+
+  @Patch('company')
+  @UseGuards(ConsoleJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'อัพเดตข้อมูลบริษัท' })
+  @ApiResponse({ status: 200, description: 'อัพเดตสำเร็จ' })
+  async updateCompany(
+    @Request() req: { user: { userId: string } },
+    @Body() dto: UpdateCompanyDto,
+  ) {
+    return this.consoleAuthService.upsertCompany(req.user.userId, dto);
   }
 
   @Get('admin/stats')

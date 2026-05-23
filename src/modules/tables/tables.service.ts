@@ -193,6 +193,7 @@ export class TablesService {
     const session = await this.prisma.tableSession.create({
       data: {
         tableId,
+        sessionId: dto.sessionId,
         openedBy: dto.openedBy,
         customerCount: dto.customerCount ?? 1,
         customerGender: dto.customerGender,
@@ -336,7 +337,7 @@ export class TablesService {
         });
       }
 
-      // Create new session at destination table
+      // Create new session at destination table (sessionId stays null — QR belongs to original table)
       const newSession = await tx.tableSession.create({
         data: {
           tableId: dto.toTableId,

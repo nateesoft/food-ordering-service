@@ -14,6 +14,7 @@ import {
   ConsoleLoginDto,
   ConsoleForgotPasswordDto,
   ConsoleResetPasswordDto,
+  UpdateCompanyDto,
 } from './dto';
 import { ConsoleRole } from '@prisma/client';
 
@@ -46,6 +47,17 @@ export class ConsoleAuthService {
         companyAddress: dto.companyAddress,
         companyPhone: dto.companyPhone,
         companyEmail: dto.companyEmail,
+      },
+    });
+
+    // Create Company record
+    await this.prisma.company.create({
+      data: {
+        name: dto.companyName,
+        address: dto.companyAddress,
+        phone: dto.companyPhone,
+        email: dto.companyEmail,
+        consoleUserId: consoleUser.id,
       },
     });
 
@@ -176,6 +188,43 @@ export class ConsoleAuthService {
       companyEmail: user.companyEmail,
       branches: user.branches,
     };
+  }
+
+  // ---- Company ----
+  async getCompany(userId: string) {
+    const company = await this.prisma.company.findUnique({
+      where: { consoleUserId: userId },
+    });
+    return company;
+  }
+
+  async upsertCompany(userId: string, dto: UpdateCompanyDto) {
+    const company = await this.prisma.company.upsert({
+      where: { consoleUserId: userId },
+      update: { ...dto },
+      create: {
+        consoleUserId: userId,
+        name: dto.name || '',
+        nameEn: dto.nameEn,
+        address: dto.address,
+        phone: dto.phone,
+        email: dto.email,
+        logo: dto.logo,
+        website: dto.website,
+        description: dto.description,
+        businessType: dto.businessType,
+      },
+    });
+
+    // Keep ConsoleUser.companyName in sync
+    if (dto.name) {
+      await this.prisma.consoleUser.update({
+        where: { id: userId },
+        data: { companyName: dto.name },
+      });
+    }
+
+    return company;
   }
 
   // ---- Forgot Password ----
