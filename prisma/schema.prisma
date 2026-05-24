@@ -39,6 +39,7 @@ model Branch {
   taxInvoices         TaxInvoice[]
   kdsStations         KDSStation[]
   systemSettings      SystemSetting[]
+  menuCategories      MenuCategory[]
 
   @@index([consoleUserId])
 }
@@ -67,6 +68,18 @@ model MenuItem {
   setComponents        SetComponent[]
   ingredients          MenuItemIngredient[]
 
+  @@index([branchId])
+}
+
+model MenuCategory {
+  @@schema("food_ordering")
+  id        Int      @id @default(autoincrement())
+  name      String
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([name, branchId])
   @@index([branchId])
 }
 

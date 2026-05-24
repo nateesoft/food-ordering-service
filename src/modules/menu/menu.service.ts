@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateMenuItemDto, UpdateMenuItemDto } from './dto';
 
@@ -241,12 +241,43 @@ export class MenuService {
     const where: any = { isActive: true };
     if (branchId) where.branchId = branchId;
 
-    const items = await this.prisma.menuItem.findMany({
-      where,
-      select: { category: true },
-      distinct: ['category'],
-    });
+    const [stored, items] = await Promise.all([
+      branchId
+        ? this.prisma.menuCategory.findMany({
+            where: { branchId },
+            select: { name: true },
+            orderBy: { createdAt: 'asc' },
+          })
+        : Promise.resolve([]),
+      this.prisma.menuItem.findMany({
+        where,
+        select: { category: true },
+        distinct: ['category'],
+      }),
+    ]);
 
-    return items.map((item) => item.category);
+    const fromTable = stored.map((c: { name: string }) => c.name);
+    const fromItems = items.map((i) => i.category);
+    return [...new Set([...fromTable, ...fromItems])];
+  }
+
+  async createCategory(name: string, branchId: string) {
+    return this.prisma.menuCategory.upsert({
+      where: { name_branchId: { name, branchId } },
+      create: { name, branchId },
+      update: {},
+    });
+  }
+
+  async deleteCategory(name: string, branchId: string) {
+    const item = await this.prisma.menuItem.findFirst({
+      where: { category: name, branchId },
+    });
+    if (item) {
+      throw new BadRequestException(`ไม่สามารถลบได้ เพราะมีเมนูอยู่ในหมวดหมู่นี้`);
+    }
+    await this.prisma.menuCategory.deleteMany({
+      where: { name, branchId },
+    });
   }
 }

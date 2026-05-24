@@ -49,6 +49,30 @@ export class MenuController {
     return this.menuService.getCategories(branchId);
   }
 
+  @Post('categories')
+  @UseGuards(ConsoleJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create menu category' })
+  @ApiResponse({ status: 201, description: 'Category created' })
+  createCategory(
+    @BranchId() branchId: string,
+    @Body('name') name: string,
+  ) {
+    return this.menuService.createCategory(name, branchId);
+  }
+
+  @Delete('categories/:name')
+  @UseGuards(ConsoleJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete menu category' })
+  @ApiResponse({ status: 200, description: 'Category deleted' })
+  deleteCategory(
+    @BranchId() branchId: string,
+    @Param('name') name: string,
+  ) {
+    return this.menuService.deleteCategory(decodeURIComponent(name), branchId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get menu item by ID' })
   @ApiResponse({ status: 200, description: 'Menu item details' })
