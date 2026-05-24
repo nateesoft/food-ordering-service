@@ -6,7 +6,7 @@ import { CreateMenuItemDto, UpdateMenuItemDto } from './dto';
 export class MenuService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(category?: string, isActive?: boolean, branchId?: number) {
+  async findAll(category?: string, isActive?: boolean, branchId?: string) {
     const where: any = {};
 
     if (branchId) {
@@ -117,7 +117,7 @@ export class MenuService {
     return menuItem;
   }
 
-  async create(createMenuItemDto: CreateMenuItemDto, branchId?: number) {
+  async create(createMenuItemDto: CreateMenuItemDto, branchId?: string) {
     const { setComponents, addOnIds, addOnGroupIds, ...data } =
       createMenuItemDto;
 
@@ -237,7 +237,7 @@ export class MenuService {
     });
   }
 
-  async getCategories(branchId?: number) {
+  async getCategories(branchId?: string) {
     const where: any = { isActive: true };
     if (branchId) where.branchId = branchId;
 

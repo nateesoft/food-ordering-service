@@ -30,7 +30,7 @@ export class StaffController {
   @ApiResponse({ status: 200, description: 'Checked in successfully' })
   @ApiResponse({ status: 401, description: 'Invalid PIN' })
   @ApiResponse({ status: 404, description: 'Table not found' })
-  async checkIn(@BranchId() branchId: number, @Body() checkInDto: CheckInDto) {
+  async checkIn(@BranchId() branchId: string, @Body() checkInDto: CheckInDto) {
     return this.staffService.checkIn(checkInDto, branchId);
   }
 
@@ -39,7 +39,7 @@ export class StaffController {
   @ApiResponse({ status: 200, description: 'Checked out successfully' })
   @ApiResponse({ status: 401, description: 'Invalid PIN' })
   @ApiResponse({ status: 404, description: 'No active check-in found' })
-  async checkOut(@BranchId() branchId: number, @Body() checkOutDto: CheckOutDto) {
+  async checkOut(@BranchId() branchId: string, @Body() checkOutDto: CheckOutDto) {
     return this.staffService.checkOut(checkOutDto, branchId);
   }
 
@@ -48,7 +48,7 @@ export class StaffController {
   @ApiResponse({ status: 200, description: 'Heartbeat updated' })
   @ApiResponse({ status: 401, description: 'Invalid PIN' })
   @ApiResponse({ status: 404, description: 'No active check-in found' })
-  async heartbeat(@BranchId() branchId: number, @Body() heartbeatDto: HeartbeatDto) {
+  async heartbeat(@BranchId() branchId: string, @Body() heartbeatDto: HeartbeatDto) {
     return this.staffService.heartbeat(heartbeatDto, branchId);
   }
 
@@ -87,7 +87,7 @@ export class StaffController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all active staff-table assignments' })
   @ApiResponse({ status: 200, description: 'Returns all active assignments' })
-  async getAllActiveAssignments(@BranchId() branchId: number) {
+  async getAllActiveAssignments(@BranchId() branchId: string) {
     return this.staffService.getAllActiveAssignments(branchId);
   }
 }

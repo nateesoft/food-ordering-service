@@ -12,7 +12,7 @@ export class KDSService {
   ) {}
 
   // === KDS Orders ===
-  async getActiveOrders(branchId?: number, stationId?: number) {
+  async getActiveOrders(branchId?: string, stationId?: number) {
     // Get categories for station filter
     let categoryFilter: string[] | undefined;
     if (stationId) {
@@ -101,7 +101,7 @@ export class KDSService {
   }
 
   // === KDS Stations ===
-  async getStations(branchId?: number) {
+  async getStations(branchId?: string) {
     const where: any = {};
     if (branchId) where.branchId = branchId;
 
@@ -111,7 +111,7 @@ export class KDSService {
     });
   }
 
-  async createStation(dto: CreateKDSStationDto, branchId?: number) {
+  async createStation(dto: CreateKDSStationDto, branchId?: string) {
     return this.prisma.kDSStation.create({
       data: {
         ...dto,

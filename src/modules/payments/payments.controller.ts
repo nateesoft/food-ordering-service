@@ -31,7 +31,7 @@ export class PaymentsController {
   @ApiResponse({ status: 400, description: 'Invalid payment' })
   @ApiResponse({ status: 409, description: 'Order already paid' })
   async create(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Body() createPaymentDto: CreatePaymentDto,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -46,7 +46,7 @@ export class PaymentsController {
   @ApiQuery({ name: 'paymentMethod', required: false, enum: PaymentMethod })
   @ApiResponse({ status: 200, description: 'List of payments' })
   findAll(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('today') today?: string,
     @Query('paymentMethod') paymentMethod?: PaymentMethod,
   ) {
@@ -60,7 +60,7 @@ export class PaymentsController {
   @Get('summary/today')
   @ApiOperation({ summary: 'Get today payment summary' })
   @ApiResponse({ status: 200, description: 'Today payment summary' })
-  getTodaySummary(@BranchId() branchId: number) {
+  getTodaySummary(@BranchId() branchId: string) {
     return this.paymentsService.getTodaySummary(branchId);
   }
 
@@ -85,7 +85,7 @@ export class PaymentsController {
   @ApiResponse({ status: 400, description: 'Invalid merge request' })
   @ApiResponse({ status: 409, description: 'One or more orders already paid' })
   async createMerged(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Body() dto: CreateMergedPaymentDto,
     @Res({ passthrough: true }) res: Response,
   ) {

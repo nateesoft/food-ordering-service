@@ -13,7 +13,7 @@ export class QueueService {
     return `Q-${timestamp}-${random}`;
   }
 
-  private async getNextQueueNumber(branchId?: number): Promise<number> {
+  private async getNextQueueNumber(branchId?: string): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -30,7 +30,7 @@ export class QueueService {
     return lastTicket ? lastTicket.queueNumber + 1 : 1;
   }
 
-  async create(createQueueTicketDto: CreateQueueTicketDto, branchId?: number) {
+  async create(createQueueTicketDto: CreateQueueTicketDto, branchId?: string) {
     const queueNumber = await this.getNextQueueNumber(branchId);
 
     const { items, ...rest } = createQueueTicketDto;
@@ -49,7 +49,7 @@ export class QueueService {
     return ticket;
   }
 
-  async findAll(status?: QueueStatus, branchId?: number) {
+  async findAll(status?: QueueStatus, branchId?: string) {
     const where: any = {};
 
     if (branchId) {
@@ -121,7 +121,7 @@ export class QueueService {
     });
   }
 
-  async getTodayQueue(branchId?: number) {
+  async getTodayQueue(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -136,7 +136,7 @@ export class QueueService {
     });
   }
 
-  async getWaitingQueue(branchId?: number) {
+  async getWaitingQueue(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -154,7 +154,7 @@ export class QueueService {
     });
   }
 
-  async getReadyQueue(branchId?: number) {
+  async getReadyQueue(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -173,7 +173,7 @@ export class QueueService {
     });
   }
 
-  async getQueueStats(branchId?: number) {
+  async getQueueStats(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

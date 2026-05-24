@@ -22,6 +22,6 @@ import { ConsoleRolesGuard } from './guards/console-roles.guard';
   ],
   controllers: [ConsoleAuthController],
   providers: [ConsoleAuthService, ConsoleJwtAuthGuard, ConsoleRolesGuard],
-  exports: [ConsoleAuthService],
+  exports: [ConsoleAuthService, ConsoleJwtAuthGuard, JwtModule],
 })
 export class ConsoleAuthModule {}

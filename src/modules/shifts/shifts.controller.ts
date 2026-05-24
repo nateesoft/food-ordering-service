@@ -18,7 +18,7 @@ export class ShiftsController {
   @Post('open')
   @ApiOperation({ summary: 'Open a new shift' })
   @ApiResponse({ status: 201, description: 'Shift opened successfully' })
-  openShift(@Body() dto: OpenShiftDto, @BranchId() branchId: number) {
+  openShift(@Body() dto: OpenShiftDto, @BranchId() branchId: string) {
     return this.shiftsService.openShift(dto, branchId);
   }
 
@@ -32,7 +32,7 @@ export class ShiftsController {
   @Get('active')
   @ApiOperation({ summary: 'Get currently active shift' })
   @ApiResponse({ status: 200, description: 'Active shift or null' })
-  getActiveShift(@BranchId() branchId: number) {
+  getActiveShift(@BranchId() branchId: string) {
     return this.shiftsService.getActiveShift(branchId);
   }
 
@@ -43,7 +43,7 @@ export class ShiftsController {
   @ApiQuery({ name: 'endDate', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of shifts' })
   findAll(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('status') status?: ShiftStatus,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,

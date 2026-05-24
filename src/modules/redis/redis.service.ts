@@ -24,7 +24,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client.disconnect();
   }
 
-  async registerSession(sessionId: string, tableNumber: string, branchId: number): Promise<void> {
+  async registerSession(sessionId: string, tableNumber: string, branchId: string): Promise<void> {
     const sessionKey = `${SESSION_PREFIX}${sessionId}`;
     const tableKey = `${TABLE_ACTIVE_PREFIX}${branchId}:${tableNumber}`;
     const value = JSON.stringify({ tableNumber, branchId });
@@ -34,7 +34,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     await pipeline.exec();
   }
 
-  async validateSession(sessionId: string): Promise<{ tableNumber: string; branchId: number } | null> {
+  async validateSession(sessionId: string): Promise<{ tableNumber: string; branchId: string } | null> {
     const key = `${SESSION_PREFIX}${sessionId}`;
     const value = await this.client.get(key);
     if (!value) return null;
@@ -51,11 +51,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     await pipeline.exec();
   }
 
-  async getActiveSessionForTable(tableNumber: string, branchId: number): Promise<string | null> {
+  async getActiveSessionForTable(tableNumber: string, branchId: string): Promise<string | null> {
     return this.client.get(`${TABLE_ACTIVE_PREFIX}${branchId}:${tableNumber}`);
   }
 
-  async clearSessionForTable(tableNumber: string, branchId: number): Promise<void> {
+  async clearSessionForTable(tableNumber: string, branchId: string): Promise<void> {
     const tableKey = `${TABLE_ACTIVE_PREFIX}${branchId}:${tableNumber}`;
     const sessionId = await this.client.get(tableKey);
     if (!sessionId) return;

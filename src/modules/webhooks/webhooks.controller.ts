@@ -29,14 +29,14 @@ export class WebhooksController {
   @Post()
   @ApiOperation({ summary: 'Create a new webhook endpoint' })
   @ApiResponse({ status: 201, description: 'Webhook created (secret shown once)' })
-  create(@Body() dto: CreateWebhookDto, @BranchId() branchId: number) {
+  create(@Body() dto: CreateWebhookDto, @BranchId() branchId: string) {
     return this.webhooksService.create(dto, branchId);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all webhook endpoints' })
   @ApiResponse({ status: 200, description: 'List of webhooks' })
-  findAll(@BranchId() branchId: number) {
+  findAll(@BranchId() branchId: string) {
     return this.webhooksService.findAll(branchId);
   }
 

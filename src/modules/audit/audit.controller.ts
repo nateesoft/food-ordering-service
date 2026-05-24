@@ -19,7 +19,7 @@ export class AuditController {
   @Get()
   @ApiOperation({ summary: 'Query audit logs with filters and pagination' })
   @ApiResponse({ status: 200, description: 'Paginated audit logs' })
-  findAll(@BranchId() branchId: number, @Query() query: QueryAuditLogsDto) {
+  findAll(@BranchId() branchId: string, @Query() query: QueryAuditLogsDto) {
     return this.auditService.findAll({
       ...query,
       branchId,
@@ -36,7 +36,7 @@ export class AuditController {
   @ApiOperation({ summary: 'Get audit log statistics' })
   @ApiResponse({ status: 200, description: 'Audit log stats by action' })
   getStats(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {

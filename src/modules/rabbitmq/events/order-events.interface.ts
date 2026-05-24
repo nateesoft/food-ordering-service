@@ -4,7 +4,7 @@ export interface RabbitMQMessageEnvelope<T> {
   timestamp: string;
   version: string;
   source: string;
-  branchId: number | null;
+  branchId: string | null;
   payload: T;
 }
 

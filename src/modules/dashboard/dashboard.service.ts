@@ -6,7 +6,7 @@ import { OrderStatus, QueueStatus, TableStatus, PaymentStatus } from '@prisma/cl
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getOverviewStats(branchId?: number) {
+  async getOverviewStats(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const branchFilter = branchId ? { branchId } : {};
@@ -60,7 +60,7 @@ export class DashboardService {
     };
   }
 
-  async getQueueStats(branchId?: number) {
+  async getQueueStats(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const branchFilter = branchId ? { branchId } : {};
@@ -120,7 +120,7 @@ export class DashboardService {
     };
   }
 
-  async getOrderStats(branchId?: number) {
+  async getOrderStats(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const branchFilter = branchId ? { branchId } : {};
@@ -149,7 +149,7 @@ export class DashboardService {
     };
   }
 
-  async getPopularItems(limit: number = 10, branchId?: number) {
+  async getPopularItems(limit: number = 10, branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -183,7 +183,7 @@ export class DashboardService {
     }));
   }
 
-  async getRevenueByHour(branchId?: number) {
+  async getRevenueByHour(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const branchFilter = branchId ? { branchId } : {};
@@ -215,7 +215,7 @@ export class DashboardService {
 
   // ===== Report Methods =====
 
-  async getRevenueReport(startDate: Date, endDate: Date, branchId?: number) {
+  async getRevenueReport(startDate: Date, endDate: Date, branchId?: string) {
     const branchFilter = branchId ? { branchId } : {};
 
     const payments = await this.prisma.payment.findMany({
@@ -267,7 +267,7 @@ export class DashboardService {
     };
   }
 
-  async getOrdersReport(startDate: Date, endDate: Date, branchId?: number) {
+  async getOrdersReport(startDate: Date, endDate: Date, branchId?: string) {
     const branchFilter = branchId ? { branchId } : {};
 
     const orders = await this.prisma.order.findMany({
@@ -322,7 +322,7 @@ export class DashboardService {
     };
   }
 
-  async getMenuPerformanceReport(startDate: Date, endDate: Date, branchId?: number) {
+  async getMenuPerformanceReport(startDate: Date, endDate: Date, branchId?: string) {
     const orderItems = await this.prisma.orderItem.findMany({
       where: {
         createdAt: { gte: startDate, lte: endDate },
@@ -435,7 +435,7 @@ export class DashboardService {
     };
   }
 
-  async getDailySummary(startDate: Date, endDate: Date, branchId?: number) {
+  async getDailySummary(startDate: Date, endDate: Date, branchId?: string) {
     const branchFilter = branchId ? { branchId } : {};
 
     const orders = await this.prisma.order.findMany({

@@ -23,7 +23,7 @@ export class RabbitMQPublisher {
   async publish<T>(
     routingKey: RoutingKey,
     payload: T,
-    branchId?: number | null,
+    branchId?: string | null,
   ): Promise<void> {
     const message: RabbitMQMessageEnvelope<T> = {
       eventId: crypto.randomUUID(),

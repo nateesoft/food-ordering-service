@@ -10,16 +10,23 @@ import { CreateBranchDto, UpdateBranchDto } from './dto';
 export class BranchService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(isActive?: boolean) {
+  async findAll(isActive?: boolean, companyId?: string) {
     const where: any = {};
     if (isActive !== undefined) where.isActive = isActive;
-    return this.prisma.branch.findMany({
-      where,
-      orderBy: { id: 'asc' },
-    });
+
+    if (companyId) {
+      const company = await this.prisma.company.findUnique({
+        where: { id: companyId },
+        select: { consoleUserId: true },
+      });
+      if (!company) return [];
+      where.consoleUserId = company.consoleUserId;
+    }
+
+    return this.prisma.branch.findMany({ where, orderBy: { id: 'asc' } });
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const branch = await this.prisma.branch.findUnique({ where: { id } });
     if (!branch) {
       throw new NotFoundException(`Branch with ID ${id} not found`);
@@ -38,17 +45,17 @@ export class BranchService {
     return branch;
   }
 
-  async create(dto: CreateBranchDto) {
+  async create(dto: CreateBranchDto, consoleUserId?: string) {
     const existing = await this.prisma.branch.findUnique({
       where: { code: dto.code },
     });
     if (existing) {
       throw new ConflictException(`Branch code '${dto.code}' already exists`);
     }
-    return this.prisma.branch.create({ data: dto });
+    return this.prisma.branch.create({ data: { ...dto, consoleUserId } });
   }
 
-  async update(id: number, dto: UpdateBranchDto) {
+  async update(id: string, dto: UpdateBranchDto) {
     await this.findOne(id);
     if (dto.code) {
       const existing = await this.prisma.branch.findUnique({
@@ -61,7 +68,7 @@ export class BranchService {
     return this.prisma.branch.update({ where: { id }, data: dto });
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     await this.findOne(id);
     await this.prisma.branch.delete({ where: { id } });
     return { message: 'Branch deleted successfully' };

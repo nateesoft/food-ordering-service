@@ -27,7 +27,7 @@ export class PromotionsController {
   @Post()
   @ApiOperation({ summary: 'Create a new promotion' })
   @ApiResponse({ status: 201, description: 'Promotion created' })
-  create(@Body() dto: CreatePromotionDto, @BranchId() branchId: number) {
+  create(@Body() dto: CreatePromotionDto, @BranchId() branchId: string) {
     return this.promotionsService.create(dto, branchId);
   }
 
@@ -36,7 +36,7 @@ export class PromotionsController {
   @ApiQuery({ name: 'status', required: false, enum: PromotionStatus })
   @ApiResponse({ status: 200, description: 'List of promotions' })
   findAll(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('status') status?: PromotionStatus,
   ) {
     return this.promotionsService.findAll(branchId, status);
@@ -47,7 +47,7 @@ export class PromotionsController {
   @ApiQuery({ name: 'subtotal', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Available promotions' })
   getAvailable(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('subtotal') subtotal?: string,
   ) {
     return this.promotionsService.getAvailablePromotions(
@@ -59,7 +59,7 @@ export class PromotionsController {
   @Get('stats')
   @ApiOperation({ summary: 'Get promotion statistics' })
   @ApiResponse({ status: 200, description: 'Promotion stats' })
-  getStats(@BranchId() branchId: number) {
+  getStats(@BranchId() branchId: string) {
     return this.promotionsService.getPromotionStats(branchId);
   }
 
@@ -87,7 +87,7 @@ export class PromotionsController {
   @Post('validate-coupon')
   @ApiOperation({ summary: 'Validate a coupon code' })
   @ApiResponse({ status: 200, description: 'Coupon validation result' })
-  validateCoupon(@Body() dto: ValidateCouponDto, @BranchId() branchId: number) {
+  validateCoupon(@Body() dto: ValidateCouponDto, @BranchId() branchId: string) {
     return this.promotionsService.validateCoupon(dto, branchId);
   }
 }

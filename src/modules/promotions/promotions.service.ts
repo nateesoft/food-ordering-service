@@ -11,7 +11,7 @@ import { PromotionType, PromotionStatus } from '@prisma/client';
 export class PromotionsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreatePromotionDto, branchId?: number) {
+  async create(dto: CreatePromotionDto, branchId?: string) {
     const data: any = {
       name: dto.name,
       description: dto.description,
@@ -32,7 +32,7 @@ export class PromotionsService {
     return this.prisma.promotion.create({ data });
   }
 
-  async findAll(branchId?: number, status?: PromotionStatus) {
+  async findAll(branchId?: string, status?: PromotionStatus) {
     const where: any = {};
     if (branchId) {
       where.OR = [{ branchId }, { branchId: null }];
@@ -85,7 +85,7 @@ export class PromotionsService {
     });
   }
 
-  async getAvailablePromotions(branchId?: number, subtotal?: number) {
+  async getAvailablePromotions(branchId?: string, subtotal?: number) {
     const now = new Date();
 
     const where: any = {
@@ -125,7 +125,7 @@ export class PromotionsService {
     });
   }
 
-  async validateCoupon(dto: ValidateCouponDto, branchId?: number) {
+  async validateCoupon(dto: ValidateCouponDto, branchId?: string) {
     const { couponCode, subtotal } = dto;
 
     const promotion = await this.prisma.promotion.findUnique({
@@ -213,7 +213,7 @@ export class PromotionsService {
     }
   }
 
-  async getPromotionStats(branchId?: number) {
+  async getPromotionStats(branchId?: string) {
     const now = new Date();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);

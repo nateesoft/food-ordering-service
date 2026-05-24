@@ -35,7 +35,7 @@ export class InventoryController {
   @Post('ingredients')
   @ApiOperation({ summary: 'Create ingredient' })
   @ApiResponse({ status: 201, description: 'Ingredient created' })
-  createIngredient(@BranchId() branchId: number, @Body() dto: CreateIngredientDto) {
+  createIngredient(@BranchId() branchId: string, @Body() dto: CreateIngredientDto) {
     return this.inventoryService.createIngredient(dto, branchId);
   }
 
@@ -43,7 +43,7 @@ export class InventoryController {
   @ApiOperation({ summary: 'Get all ingredients' })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of ingredients' })
-  findAllIngredients(@BranchId() branchId: number, @Query('isActive') isActive?: string) {
+  findAllIngredients(@BranchId() branchId: string, @Query('isActive') isActive?: string) {
     const active = isActive !== undefined ? isActive === 'true' : undefined;
     return this.inventoryService.findAllIngredients(active, branchId);
   }
@@ -116,21 +116,21 @@ export class InventoryController {
   @Get('alerts/low-stock')
   @ApiOperation({ summary: 'Get low stock alerts' })
   @ApiResponse({ status: 200, description: 'Low stock ingredients' })
-  getLowStockAlerts(@BranchId() branchId: number) {
+  getLowStockAlerts(@BranchId() branchId: string) {
     return this.inventoryService.getLowStockAlerts(branchId);
   }
 
   @Get('menu-availability')
   @ApiOperation({ summary: 'Get menu item availability based on stock' })
   @ApiResponse({ status: 200, description: 'Menu availability list' })
-  getMenuAvailability(@BranchId() branchId: number) {
+  getMenuAvailability(@BranchId() branchId: string) {
     return this.inventoryService.getMenuAvailability(branchId);
   }
 
   @Get('stock-overview')
   @ApiOperation({ summary: 'Get stock overview' })
   @ApiResponse({ status: 200, description: 'Stock overview data' })
-  getStockOverview(@BranchId() branchId: number) {
+  getStockOverview(@BranchId() branchId: string) {
     return this.inventoryService.getStockOverview(branchId);
   }
 

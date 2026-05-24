@@ -31,7 +31,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Create new order' })
   @ApiResponse({ status: 201, description: 'Order created successfully' })
   async create(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Body() createOrderDto: CreateOrderDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -59,7 +59,7 @@ export class OrdersController {
   @ApiQuery({ name: 'sessionId', required: false })
   @ApiResponse({ status: 200, description: 'List of orders' })
   findAll(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('status') status?: OrderStatus,
     @Query('tableNumber') tableNumber?: string,
     @Query('sessionId') sessionId?: string,
@@ -70,14 +70,14 @@ export class OrdersController {
   @Get('today')
   @ApiOperation({ summary: 'Get today orders' })
   @ApiResponse({ status: 200, description: 'List of today orders' })
-  getTodayOrders(@BranchId() branchId: number) {
+  getTodayOrders(@BranchId() branchId: string) {
     return this.ordersService.getTodayOrders(branchId);
   }
 
   @Get('unpaid')
   @ApiOperation({ summary: 'Get unpaid orders (COMPLETED/DELIVERED without PAID payment)' })
   @ApiResponse({ status: 200, description: 'List of unpaid orders' })
-  getUnpaidOrders(@BranchId() branchId: number) {
+  getUnpaidOrders(@BranchId() branchId: string) {
     return this.ordersService.findUnpaidOrders(branchId);
   }
 
@@ -85,7 +85,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get orders by table number' })
   @ApiResponse({ status: 200, description: 'List of orders for table' })
   getOrdersByTable(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Param('tableNumber') tableNumber: string,
   ) {
     return this.ordersService.getOrdersByTable(tableNumber, branchId);
@@ -112,7 +112,7 @@ export class OrdersController {
   @ApiResponse({ status: 201, description: 'Order split successfully' })
   @ApiResponse({ status: 400, description: 'Invalid split request' })
   splitOrder(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Param('id', ParseIntPipe) id: number,
     @Body() splitOrderDto: SplitOrderDto,
   ) {
@@ -123,7 +123,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Mark all PREPARING orders for a table as COMPLETED (request payment)' })
   @ApiResponse({ status: 200, description: 'Orders completed' })
   completeOrdersByTable(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Param('tableNumber') tableNumber: string,
   ) {
     return this.ordersService.completeOrdersByTable(tableNumber, branchId);

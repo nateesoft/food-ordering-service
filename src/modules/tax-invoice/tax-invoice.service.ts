@@ -7,7 +7,7 @@ export class TaxInvoiceService {
   constructor(private prisma: PrismaService) {}
 
   // === Invoice Number Generation ===
-  private async generateInvoiceNumber(branchId?: number): Promise<string> {
+  private async generateInvoiceNumber(branchId?: string): Promise<string> {
     const now = new Date();
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     const prefix = `IV-${yearMonth}-`;
@@ -30,7 +30,7 @@ export class TaxInvoiceService {
   }
 
   // === Tax Invoice CRUD ===
-  async create(dto: CreateTaxInvoiceDto, branchId?: number) {
+  async create(dto: CreateTaxInvoiceDto, branchId?: string) {
     // Fetch payment data
     const payment = await this.prisma.payment.findUnique({
       where: { id: dto.paymentId },
@@ -89,7 +89,7 @@ export class TaxInvoiceService {
     return invoice;
   }
 
-  async findAll(branchId?: number, startDate?: Date, endDate?: Date) {
+  async findAll(branchId?: string, startDate?: Date, endDate?: Date) {
     const where: any = {};
     if (branchId) where.branchId = branchId;
     if (startDate || endDate) {
@@ -123,13 +123,13 @@ export class TaxInvoiceService {
   }
 
   // === Company Tax Info ===
-  async getCompanyInfo(branchId?: number) {
+  async getCompanyInfo(branchId?: string) {
     return this.prisma.companyTaxInfo.findFirst({
       where: { branchId: branchId || null },
     });
   }
 
-  async upsertCompanyInfo(dto: UpdateCompanyTaxInfoDto, branchId?: number) {
+  async upsertCompanyInfo(dto: UpdateCompanyTaxInfoDto, branchId?: string) {
     const existing = await this.prisma.companyTaxInfo.findFirst({
       where: { branchId: branchId || null },
     });

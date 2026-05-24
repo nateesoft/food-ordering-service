@@ -11,7 +11,7 @@ export class TaxInvoiceController {
 
   @Post()
   @ApiOperation({ summary: 'Create tax invoice' })
-  create(@Body() dto: CreateTaxInvoiceDto, @BranchId() branchId?: number) {
+  create(@Body() dto: CreateTaxInvoiceDto, @BranchId() branchId?: string) {
     return this.taxInvoiceService.create(dto, branchId);
   }
 
@@ -20,7 +20,7 @@ export class TaxInvoiceController {
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
   findAll(
-    @BranchId() branchId?: number,
+    @BranchId() branchId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
@@ -47,13 +47,13 @@ export class TaxInvoiceController {
 
   @Get('company/info')
   @ApiOperation({ summary: 'Get company tax info' })
-  getCompanyInfo(@BranchId() branchId?: number) {
+  getCompanyInfo(@BranchId() branchId?: string) {
     return this.taxInvoiceService.getCompanyInfo(branchId);
   }
 
   @Post('company/info')
   @ApiOperation({ summary: 'Create or update company tax info' })
-  upsertCompanyInfo(@Body() dto: UpdateCompanyTaxInfoDto, @BranchId() branchId?: number) {
+  upsertCompanyInfo(@Body() dto: UpdateCompanyTaxInfoDto, @BranchId() branchId?: string) {
     return this.taxInvoiceService.upsertCompanyInfo(dto, branchId);
   }
 }

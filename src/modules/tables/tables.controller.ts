@@ -55,7 +55,7 @@ export class TablesController {
   @ApiQuery({ name: 'zone', required: false })
   @ApiResponse({ status: 200, description: 'List of tables' })
   findAll(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('status') status?: TableStatus,
     @Query('zone') zone?: string,
   ) {
@@ -65,21 +65,21 @@ export class TablesController {
   @Get('available')
   @ApiOperation({ summary: 'Get available tables' })
   @ApiResponse({ status: 200, description: 'List of available tables' })
-  getAvailableTables(@BranchId() branchId: number) {
+  getAvailableTables(@BranchId() branchId: string) {
     return this.tablesService.getAvailableTables(branchId);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get table statistics' })
   @ApiResponse({ status: 200, description: 'Table statistics' })
-  getTableStats(@BranchId() branchId: number) {
+  getTableStats(@BranchId() branchId: string) {
     return this.tablesService.getTableStats(branchId);
   }
 
   @Get('zones')
   @ApiOperation({ summary: 'Get all table zones' })
   @ApiResponse({ status: 200, description: 'List of zones' })
-  getZones(@BranchId() branchId: number) {
+  getZones(@BranchId() branchId: string) {
     return this.tablesService.getZones(branchId);
   }
 
@@ -112,7 +112,7 @@ export class TablesController {
   @ApiOperation({ summary: 'Register a sessionId in Redis (TTL 3h)' })
   @ApiResponse({ status: 201, description: 'Session registered' })
   async registerSession(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Body() dto: RegisterSessionDto,
   ) {
     await this.redisService.registerSession(dto.sessionId, dto.tableNumber, branchId);
@@ -133,7 +133,7 @@ export class TablesController {
   @ApiQuery({ name: 'sessionId', required: false })
   @ApiResponse({ status: 200, description: 'Access check result' })
   async checkTableAccess(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Param('tableNumber') tableNumber: string,
     @Query('sessionId') sessionId?: string,
   ) {
@@ -168,7 +168,7 @@ export class TablesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new table (Admin only)' })
   @ApiResponse({ status: 201, description: 'Table created' })
-  create(@BranchId() branchId: number, @Body() createTableDto: CreateTableDto) {
+  create(@BranchId() branchId: string, @Body() createTableDto: CreateTableDto) {
     return this.tablesService.create(createTableDto, branchId);
   }
 
@@ -224,7 +224,7 @@ export class TablesController {
   transferTable(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: TransferTableDto,
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
   ) {
     return this.tablesService.transferTable(id, dto, branchId);
   }
@@ -235,7 +235,7 @@ export class TablesController {
   openSession(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: OpenTableSessionDto,
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
   ) {
     return this.tablesService.openSession(id, dto, branchId);
   }

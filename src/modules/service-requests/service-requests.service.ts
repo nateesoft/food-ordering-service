@@ -17,7 +17,7 @@ export class ServiceRequestsService {
     return `SR-${timestamp}-${random}`;
   }
 
-  async create(createServiceRequestDto: CreateServiceRequestDto, branchId?: number) {
+  async create(createServiceRequestDto: CreateServiceRequestDto, branchId?: string) {
     const serviceRequest = await this.prisma.serviceRequest.create({
       data: {
         ...createServiceRequestDto,
@@ -49,7 +49,7 @@ export class ServiceRequestsService {
     status?: ServiceRequestStatus,
     type?: ServiceRequestType,
     tableNumber?: string,
-    branchId?: number,
+    branchId?: string,
   ) {
     const where: any = {};
 
@@ -119,7 +119,7 @@ export class ServiceRequestsService {
     return updated;
   }
 
-  async getPendingRequests(branchId?: number) {
+  async getPendingRequests(branchId?: string) {
     const where: any = { status: ServiceRequestStatus.PENDING };
     if (branchId) where.branchId = branchId;
 
@@ -143,7 +143,7 @@ export class ServiceRequestsService {
     });
   }
 
-  async getRequestStats(branchId?: number) {
+  async getRequestStats(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

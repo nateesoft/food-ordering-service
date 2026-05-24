@@ -19,8 +19,7 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { ConsoleJwtAuthGuard } from '../console-auth/guards/console-jwt-auth.guard';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
 
 @ApiTags('Auth')
@@ -37,10 +36,9 @@ export class AuthController {
   }
 
   @Post('register')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Register new user (Admin only)' })
+  @ApiOperation({ summary: 'Register new staff user (Console user)' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ApiResponse({ status: 409, description: 'Username already exists' })
   async register(@Body() registerDto: RegisterDto) {
@@ -59,7 +57,7 @@ export class AuthController {
   @Get('users')
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'List of users' })
-  async findAllUsers(@BranchId() branchId: number) {
+  async findAllUsers(@BranchId() branchId: string) {
     return this.authService.findAllUsers(branchId);
   }
 

@@ -29,7 +29,7 @@ export class OrdersService {
     return `ORD-${timestamp}-${random}`;
   }
 
-  async create(createOrderDto: CreateOrderDto, branchId?: number, cookieSessionId?: string): Promise<{ order: any; newSessionId?: string }> {
+  async create(createOrderDto: CreateOrderDto, branchId?: string, cookieSessionId?: string): Promise<{ order: any; newSessionId?: string }> {
     const { items, ...orderData } = createOrderDto;
 
     // Resolve the effective sessionId: body > cookie > generate new
@@ -57,7 +57,7 @@ export class OrdersService {
       // Check if this table already has an active session (another customer still ordering/not billed)
       const activeSessionId = await this.redisService.getActiveSessionForTable(
         createOrderDto.tableNumber,
-        branchId ?? 0,
+        branchId ?? '',
       );
       if (activeSessionId) {
         throw new ForbiddenException({
@@ -68,11 +68,11 @@ export class OrdersService {
       // Register session: prefer client-provided sessionId, fall back to generating a new one
       if (requestedSessionId) {
         effectiveSessionId = requestedSessionId;
-        await this.redisService.registerSession(requestedSessionId, createOrderDto.tableNumber, branchId ?? 0);
+        await this.redisService.registerSession(requestedSessionId, createOrderDto.tableNumber, branchId ?? '');
       } else {
         newSessionId = randomUUID();
         effectiveSessionId = newSessionId;
-        await this.redisService.registerSession(newSessionId, createOrderDto.tableNumber, branchId ?? 0);
+        await this.redisService.registerSession(newSessionId, createOrderDto.tableNumber, branchId ?? '');
       }
     }
 
@@ -200,7 +200,7 @@ export class OrdersService {
     }
   }
 
-  private publishOrderCreated(order: any, branchId?: number): void {
+  private publishOrderCreated(order: any, branchId?: string): void {
     const itemDetails: OrderItemDetail[] = (order.items ?? []).map((item: any) => ({
       itemId: `ITEM-${String(item.menuItemId).padStart(3, '0')}`,
       code: item.menuItem?.code ?? '',
@@ -246,7 +246,7 @@ export class OrdersService {
     this.rabbitMQPublisher.publish(routingKey, payload, updatedOrder.branchId);
   }
 
-  async findAll(status?: OrderStatus, tableNumber?: string, branchId?: number, sessionId?: string) {
+  async findAll(status?: OrderStatus, tableNumber?: string, branchId?: string, sessionId?: string) {
     const where: any = {};
 
     if (branchId) {
@@ -451,7 +451,7 @@ export class OrdersService {
     return updated;
   }
 
-  async getOrdersByTable(tableNumber: string, branchId?: number) {
+  async getOrdersByTable(tableNumber: string, branchId?: string) {
     return this.prisma.order.findMany({
       where: {
         tableNumber,
@@ -478,7 +478,7 @@ export class OrdersService {
     });
   }
 
-  async completeOrdersByTable(tableNumber: string, branchId?: number) {
+  async completeOrdersByTable(tableNumber: string, branchId?: string) {
     const where: any = {
       tableNumber,
       status: OrderStatus.PREPARING,
@@ -491,7 +491,7 @@ export class OrdersService {
     });
   }
 
-  async findUnpaidOrders(branchId?: number) {
+  async findUnpaidOrders(branchId?: string) {
     const where: any = {
       status: {
         in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED],
@@ -519,7 +519,7 @@ export class OrdersService {
     });
   }
 
-  async getTodayOrders(branchId?: number) {
+  async getTodayOrders(branchId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -543,7 +543,7 @@ export class OrdersService {
     });
   }
 
-  async splitOrder(orderId: number, dto: SplitOrderDto, branchId?: number) {
+  async splitOrder(orderId: number, dto: SplitOrderDto, branchId?: string) {
     // 1. Fetch the original order
     const original = await this.prisma.order.findUnique({
       where: { id: orderId },

@@ -24,7 +24,7 @@ export class PaymentsService {
     private redisService: RedisService,
   ) {}
 
-  private async generateReceiptNumber(branchId?: number, offset = 0): Promise<string> {
+  private async generateReceiptNumber(branchId?: string, offset = 0): Promise<string> {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
     const prefix = `RCP-${dateStr}-`;
@@ -55,7 +55,7 @@ export class PaymentsService {
     return `${prefix}${runningNumber}`;
   }
 
-  async createPayment(dto: CreatePaymentDto, branchId?: number) {
+  async createPayment(dto: CreatePaymentDto, branchId?: string) {
     // 1. Find the order
     const order = await this.prisma.order.findUnique({
       where: { id: dto.orderId },
@@ -295,7 +295,7 @@ export class PaymentsService {
     return payment;
   }
 
-  async createMergedPayment(dto: CreateMergedPaymentDto, branchId?: number) {
+  async createMergedPayment(dto: CreateMergedPaymentDto, branchId?: string) {
     // 1. Fetch all orders
     const orders = await this.prisma.order.findMany({
       where: { id: { in: dto.orderIds } },
@@ -576,7 +576,7 @@ export class PaymentsService {
     };
   }
 
-  async findAll(today?: boolean, paymentMethod?: PaymentMethod, branchId?: number) {
+  async findAll(today?: boolean, paymentMethod?: PaymentMethod, branchId?: string) {
     const where: any = {};
 
     if (branchId) {
@@ -668,7 +668,7 @@ export class PaymentsService {
     });
   }
 
-  async getTodaySummary(branchId?: number) {
+  async getTodaySummary(branchId?: string) {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 

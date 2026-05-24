@@ -16,21 +16,21 @@ export class DashboardController {
   @Get('stats')
   @ApiOperation({ summary: 'Get overview statistics' })
   @ApiResponse({ status: 200, description: 'Overview statistics' })
-  getOverviewStats(@BranchId() branchId: number) {
+  getOverviewStats(@BranchId() branchId: string) {
     return this.dashboardService.getOverviewStats(branchId);
   }
 
   @Get('queue-stats')
   @ApiOperation({ summary: 'Get queue statistics' })
   @ApiResponse({ status: 200, description: 'Queue statistics' })
-  getQueueStats(@BranchId() branchId: number) {
+  getQueueStats(@BranchId() branchId: string) {
     return this.dashboardService.getQueueStats(branchId);
   }
 
   @Get('order-stats')
   @ApiOperation({ summary: 'Get order statistics' })
   @ApiResponse({ status: 200, description: 'Order statistics' })
-  getOrderStats(@BranchId() branchId: number) {
+  getOrderStats(@BranchId() branchId: string) {
     return this.dashboardService.getOrderStats(branchId);
   }
 
@@ -38,7 +38,7 @@ export class DashboardController {
   @ApiOperation({ summary: 'Get popular menu items' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Popular menu items' })
-  getPopularItems(@BranchId() branchId: number, @Query('limit') limit?: string) {
+  getPopularItems(@BranchId() branchId: string, @Query('limit') limit?: string) {
     const limitNum = limit ? parseInt(limit) : 10;
     return this.dashboardService.getPopularItems(limitNum, branchId);
   }
@@ -46,7 +46,7 @@ export class DashboardController {
   @Get('revenue-by-hour')
   @ApiOperation({ summary: 'Get revenue by hour' })
   @ApiResponse({ status: 200, description: 'Hourly revenue data' })
-  getRevenueByHour(@BranchId() branchId: number) {
+  getRevenueByHour(@BranchId() branchId: string) {
     return this.dashboardService.getRevenueByHour(branchId);
   }
 
@@ -58,7 +58,7 @@ export class DashboardController {
   @ApiQuery({ name: 'endDate', required: true, type: String })
   @ApiResponse({ status: 200, description: 'Revenue report data' })
   getRevenueReport(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
@@ -75,7 +75,7 @@ export class DashboardController {
   @ApiQuery({ name: 'endDate', required: true, type: String })
   @ApiResponse({ status: 200, description: 'Orders report data' })
   getOrdersReport(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
@@ -92,7 +92,7 @@ export class DashboardController {
   @ApiQuery({ name: 'endDate', required: true, type: String })
   @ApiResponse({ status: 200, description: 'Menu performance data' })
   getMenuPerformanceReport(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
@@ -116,7 +116,7 @@ export class DashboardController {
   @ApiQuery({ name: 'endDate', required: true, type: String })
   @ApiResponse({ status: 200, description: 'Daily summary data' })
   getDailySummary(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {

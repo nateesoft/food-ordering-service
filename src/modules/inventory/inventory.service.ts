@@ -21,11 +21,11 @@ export class InventoryService {
 
   // ===== INGREDIENT CRUD =====
 
-  async createIngredient(dto: CreateIngredientDto, branchId?: number) {
+  async createIngredient(dto: CreateIngredientDto, branchId?: string) {
     return this.prisma.ingredient.create({ data: { ...dto, branchId } });
   }
 
-  async findAllIngredients(isActive?: boolean, branchId?: number) {
+  async findAllIngredients(isActive?: boolean, branchId?: string) {
     const where: any = {};
     if (branchId) {
       where.branchId = branchId;
@@ -378,7 +378,7 @@ export class InventoryService {
 
   // ===== ALERTS & MONITORING =====
 
-  async getLowStockAlerts(branchId?: number) {
+  async getLowStockAlerts(branchId?: string) {
     // Prisma doesn't support field-to-field comparison, use raw query
     const branchCondition = branchId ? `AND "branchId" = ${branchId}` : '';
     const alerts = await this.prisma.$queryRawUnsafe<any[]>(`
@@ -391,7 +391,7 @@ export class InventoryService {
     return alerts;
   }
 
-  async getMenuAvailability(branchId?: number) {
+  async getMenuAvailability(branchId?: string) {
     const where: any = { isActive: true };
     if (branchId) where.branchId = branchId;
 
@@ -427,7 +427,7 @@ export class InventoryService {
     });
   }
 
-  async getStockOverview(branchId?: number) {
+  async getStockOverview(branchId?: string) {
     const where: any = { isActive: true };
     if (branchId) where.branchId = branchId;
 

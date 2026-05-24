@@ -7,8 +7,8 @@ import {
   Body,
   Param,
   Query,
-  ParseIntPipe,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,9 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { BranchService } from './branch.service';
 import { CreateBranchDto, UpdateBranchDto } from './dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { ConsoleJwtAuthGuard } from '../console-auth/guards/console-jwt-auth.guard';
 
 @ApiTags('Branches')
 @Controller('branches')
@@ -31,11 +29,15 @@ export class BranchController {
   @Get()
   @ApiOperation({ summary: 'Get all branches' })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiQuery({ name: 'companyId', required: false, type: String, description: 'Filter by Company UUID' })
   @ApiResponse({ status: 200, description: 'List of branches' })
-  findAll(@Query('isActive') isActive?: string) {
+  findAll(
+    @Query('isActive') isActive?: string,
+    @Query('companyId') companyId?: string,
+  ) {
     const isActiveBoolean =
       isActive !== undefined ? isActive === 'true' : undefined;
-    return this.branchService.findAll(isActiveBoolean);
+    return this.branchService.findAll(isActiveBoolean, companyId);
   }
 
   @Get('code/:code')
@@ -50,42 +52,42 @@ export class BranchController {
   @ApiOperation({ summary: 'Get branch by ID' })
   @ApiResponse({ status: 200, description: 'Branch details' })
   @ApiResponse({ status: 404, description: 'Branch not found' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id') id: string) {
     return this.branchService.findOne(id);
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create new branch (Admin only)' })
+  @ApiOperation({ summary: 'Create new branch (Console user)' })
   @ApiResponse({ status: 201, description: 'Branch created' })
-  create(@Body() dto: CreateBranchDto) {
-    return this.branchService.create(dto);
+  create(
+    @Request() req: { user: { userId: string } },
+    @Body() dto: CreateBranchDto,
+  ) {
+    return this.branchService.create(dto, req.user.userId);
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update branch (Admin only)' })
+  @ApiOperation({ summary: 'Update branch (Console user)' })
   @ApiResponse({ status: 200, description: 'Branch updated' })
   @ApiResponse({ status: 404, description: 'Branch not found' })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() dto: UpdateBranchDto,
   ) {
     return this.branchService.update(id, dto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete branch (Admin only)' })
+  @ApiOperation({ summary: 'Delete branch (Console user)' })
   @ApiResponse({ status: 200, description: 'Branch deleted' })
   @ApiResponse({ status: 404, description: 'Branch not found' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id') id: string) {
     return this.branchService.remove(id);
   }
 }

@@ -12,7 +12,7 @@ import { CheckInDto, CheckOutDto, HeartbeatDto, SetPinDto } from './dto';
 export class StaffService {
   constructor(private prisma: PrismaService) {}
 
-  async checkIn(checkInDto: CheckInDto, branchId?: number) {
+  async checkIn(checkInDto: CheckInDto, branchId?: string) {
     const { pin, tableNumber } = checkInDto;
 
     // Find staff by PIN
@@ -85,7 +85,7 @@ export class StaffService {
     return { message: 'Checked in successfully', assignment };
   }
 
-  async checkOut(checkOutDto: CheckOutDto, branchId?: number) {
+  async checkOut(checkOutDto: CheckOutDto, branchId?: string) {
     const { pin, tableNumber } = checkOutDto;
 
     // Find staff by PIN
@@ -131,7 +131,7 @@ export class StaffService {
     };
   }
 
-  async heartbeat(heartbeatDto: HeartbeatDto, branchId?: number) {
+  async heartbeat(heartbeatDto: HeartbeatDto, branchId?: string) {
     const { pin, tableNumber } = heartbeatDto;
 
     // Find staff by PIN
@@ -173,7 +173,7 @@ export class StaffService {
     };
   }
 
-  async getTableStaff(tableNumber: string, branchId?: number) {
+  async getTableStaff(tableNumber: string, branchId?: string) {
     // Check if table exists (scoped to branch)
     const table = await this.prisma.table.findFirst({
       where: { number: tableNumber, branchId: branchId ?? null },
@@ -292,7 +292,7 @@ export class StaffService {
     };
   }
 
-  async getAllActiveAssignments(branchId?: number) {
+  async getAllActiveAssignments(branchId?: string) {
     const where: any = { isActive: true };
     if (branchId) {
       where.table = { branchId };

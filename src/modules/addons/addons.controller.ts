@@ -36,7 +36,7 @@ export class AddonsController {
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of add-ons' })
   findAllAddOns(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('category') category?: string,
     @Query('isActive') isActive?: string,
   ) {
@@ -48,7 +48,7 @@ export class AddonsController {
   @Get('addons/categories')
   @ApiOperation({ summary: 'Get all add-on categories' })
   @ApiResponse({ status: 200, description: 'List of categories' })
-  getAddOnCategories(@BranchId() branchId: number) {
+  getAddOnCategories(@BranchId() branchId: string) {
     return this.addonsService.getAddOnCategories(branchId);
   }
 
@@ -66,7 +66,7 @@ export class AddonsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new add-on (Admin only)' })
   @ApiResponse({ status: 201, description: 'Add-on created' })
-  createAddOn(@BranchId() branchId: number, @Body() createAddOnDto: CreateAddOnDto) {
+  createAddOn(@BranchId() branchId: string, @Body() createAddOnDto: CreateAddOnDto) {
     return this.addonsService.createAddOn(createAddOnDto, branchId);
   }
 
@@ -102,7 +102,7 @@ export class AddonsController {
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of add-on groups' })
   findAllAddOnGroups(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('category') category?: string,
     @Query('isActive') isActive?: string,
   ) {
@@ -125,7 +125,7 @@ export class AddonsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new add-on group (Admin only)' })
   @ApiResponse({ status: 201, description: 'Add-on group created' })
-  createAddOnGroup(@BranchId() branchId: number, @Body() createAddOnGroupDto: CreateAddOnGroupDto) {
+  createAddOnGroup(@BranchId() branchId: string, @Body() createAddOnGroupDto: CreateAddOnGroupDto) {
     return this.addonsService.createAddOnGroup(createAddOnGroupDto, branchId);
   }
 

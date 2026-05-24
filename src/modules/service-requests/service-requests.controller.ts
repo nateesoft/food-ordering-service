@@ -32,7 +32,7 @@ export class ServiceRequestsController {
   @Post()
   @ApiOperation({ summary: 'Create new service request' })
   @ApiResponse({ status: 201, description: 'Service request created' })
-  create(@BranchId() branchId: number, @Body() createServiceRequestDto: CreateServiceRequestDto) {
+  create(@BranchId() branchId: string, @Body() createServiceRequestDto: CreateServiceRequestDto) {
     return this.serviceRequestsService.create(createServiceRequestDto, branchId);
   }
 
@@ -43,7 +43,7 @@ export class ServiceRequestsController {
   @ApiQuery({ name: 'tableNumber', required: false })
   @ApiResponse({ status: 200, description: 'List of service requests' })
   findAll(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('status') status?: ServiceRequestStatus,
     @Query('type') type?: ServiceRequestType,
     @Query('tableNumber') tableNumber?: string,
@@ -57,14 +57,14 @@ export class ServiceRequestsController {
     status: 200,
     description: 'List of pending service requests',
   })
-  getPendingRequests(@BranchId() branchId: number) {
+  getPendingRequests(@BranchId() branchId: string) {
     return this.serviceRequestsService.getPendingRequests(branchId);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get service request statistics' })
   @ApiResponse({ status: 200, description: 'Service request statistics' })
-  getRequestStats(@BranchId() branchId: number) {
+  getRequestStats(@BranchId() branchId: string) {
     return this.serviceRequestsService.getRequestStats(branchId);
   }
 

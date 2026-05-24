@@ -13,7 +13,7 @@ export class KDSController {
   @ApiOperation({ summary: 'Get active orders for KDS' })
   @ApiQuery({ name: 'stationId', required: false, type: Number })
   getOrders(
-    @BranchId() branchId?: number,
+    @BranchId() branchId?: string,
     @Query('stationId') stationId?: string,
   ) {
     return this.kdsService.getActiveOrders(branchId, stationId ? parseInt(stationId, 10) : undefined);
@@ -33,13 +33,13 @@ export class KDSController {
 
   @Get('stations')
   @ApiOperation({ summary: 'Get KDS stations' })
-  getStations(@BranchId() branchId?: number) {
+  getStations(@BranchId() branchId?: string) {
     return this.kdsService.getStations(branchId);
   }
 
   @Post('stations')
   @ApiOperation({ summary: 'Create KDS station' })
-  createStation(@Body() dto: CreateKDSStationDto, @BranchId() branchId?: number) {
+  createStation(@Body() dto: CreateKDSStationDto, @BranchId() branchId?: string) {
     return this.kdsService.createStation(dto, branchId);
   }
 

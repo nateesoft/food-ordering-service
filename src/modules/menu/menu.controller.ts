@@ -35,7 +35,7 @@ export class MenuController {
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiResponse({ status: 200, description: 'List of menu items' })
   findAll(
-    @BranchId() branchId: number,
+    @BranchId() branchId: string,
     @Query('category') category?: string,
     @Query('isActive') isActive?: string,
   ) {
@@ -47,7 +47,7 @@ export class MenuController {
   @Get('categories')
   @ApiOperation({ summary: 'Get all menu categories' })
   @ApiResponse({ status: 200, description: 'List of categories' })
-  getCategories(@BranchId() branchId: number) {
+  getCategories(@BranchId() branchId: string) {
     return this.menuService.getCategories(branchId);
   }
 
@@ -65,7 +65,7 @@ export class MenuController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new menu item (Admin only)' })
   @ApiResponse({ status: 201, description: 'Menu item created' })
-  create(@BranchId() branchId: number, @Body() createMenuItemDto: CreateMenuItemDto) {
+  create(@BranchId() branchId: string, @Body() createMenuItemDto: CreateMenuItemDto) {
     return this.menuService.create(createMenuItemDto, branchId);
   }
 

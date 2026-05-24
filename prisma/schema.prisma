@@ -9,7 +9,7 @@ datasource db {
 
 model Branch {
   @@schema("food_ordering")
-  id              Int              @id @default(autoincrement())
+  id              String           @id @default(uuid())
   name            String
   code            String           @unique
   address         String?
@@ -56,7 +56,7 @@ model MenuItem {
   reviewCount          Int                  @default(0)
   type                 MenuType             @default(SINGLE)
   isActive             Boolean              @default(true)
-  branchId             Int?
+  branchId             String?
   branch               Branch?              @relation(fields: [branchId], references: [id])
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
@@ -88,7 +88,7 @@ model AddOn {
   price     Float
   category  String
   isActive  Boolean          @default(true)
-  branchId  Int?
+  branchId  String?
   branch    Branch?          @relation(fields: [branchId], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -107,7 +107,7 @@ model AddOnGroup {
   category    String
   image       String?
   isActive    Boolean              @default(true)
-  branchId    Int?
+  branchId    String?
   branch      Branch?              @relation(fields: [branchId], references: [id])
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
@@ -208,7 +208,7 @@ model Order {
   splitFromOrderId Int?
   splitFromOrder   Order?      @relation("OrderSplit", fields: [splitFromOrderId], references: [id])
   splitOrders      Order[]     @relation("OrderSplit")
-  branchId         Int?
+  branchId         String?
   branch           Branch?     @relation(fields: [branchId], references: [id])
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
@@ -256,7 +256,7 @@ model QueueTicket {
   items         Json
   calledAt      DateTime?
   completedAt   DateTime?
-  branchId      Int?
+  branchId      String?
   branch        Branch?     @relation(fields: [branchId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -277,7 +277,7 @@ model Table {
   currentGuests    Int?
   mergedWith       Int[]
   zone             String?
-  branchId         Int?
+  branchId         String?
   branch           Branch?                @relation(fields: [branchId], references: [id])
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
@@ -297,7 +297,7 @@ model ServiceRequest {
   details     String?
   items       String[]
   status      ServiceRequestStatus @default(PENDING)
-  branchId    Int?
+  branchId    String?
   branch      Branch?              @relation(fields: [branchId], references: [id])
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
@@ -328,7 +328,7 @@ model User {
   role                  UserRole               @default(STAFF)
   name                  String
   isActive              Boolean                @default(true)
-  branchId              Int?
+  branchId              String?
   branch                Branch?                @relation(fields: [branchId], references: [id])
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
@@ -341,7 +341,7 @@ model TableStaffAssignment {
   @@schema("food_ordering")
   id          Int      @id @default(autoincrement())
   tableNumber String
-  branchId    Int?
+  branchId    String?
   userId      Int
   isActive    Boolean  @default(true)
   checkedInAt DateTime @default(now())
@@ -444,7 +444,7 @@ model Ingredient {
   minStock     Float                  @default(0)
   costPerUnit  Float?
   isActive     Boolean                @default(true)
-  branchId     Int?
+  branchId     String?
   branch       Branch?                @relation(fields: [branchId], references: [id])
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
@@ -544,7 +544,7 @@ model Payment {
   cashierName    String?
   note           String?
   paidAt         DateTime?
-  branchId       Int?
+  branchId       String?
   branch         Branch?       @relation(fields: [branchId], references: [id])
   shiftId           Int?
   shift             Shift?        @relation(fields: [shiftId], references: [id])
@@ -573,7 +573,7 @@ model Shift {
   status             ShiftStatus @default(OPEN)
   userId             Int
   cashierName        String
-  branchId           Int?
+  branchId           String?
   branch             Branch?     @relation(fields: [branchId], references: [id])
   openedAt           DateTime    @default(now())
   closedAt           DateTime?
@@ -617,7 +617,7 @@ model Promotion {
   categories     String[]
   maxUses        Int?
   currentUses    Int             @default(0)
-  branchId       Int?
+  branchId       String?
   branch         Branch?         @relation(fields: [branchId], references: [id])
   payments       Payment[]
   createdAt      DateTime        @default(now())
@@ -652,7 +652,7 @@ model WebhookEndpoint {
   secret      String
   events      WebhookEvent[]
   isActive    Boolean           @default(true)
-  branchId    Int?
+  branchId    String?
   branch      Branch?           @relation(fields: [branchId], references: [id])
   headers     Json?
   description String?
@@ -699,7 +699,7 @@ model TableSession {
   status              String    @default("OPEN")
   openedAt            DateTime  @default(now())
   closedAt            DateTime?
-  branchId            Int?
+  branchId            String?
   branch              Branch?   @relation(fields: [branchId], references: [id])
 
   @@index([tableId])
@@ -736,7 +736,7 @@ model AuditLog {
   entityId    Int
   entityRef   String?
   performedBy String?
-  branchId    Int?
+  branchId    String?
   oldValues   Json?
   newValues   Json?
   metadata    Json?
@@ -777,7 +777,7 @@ model GatewayTransaction {
   completedAt     DateTime?
   createdAt       DateTime                 @default(now())
   updatedAt       DateTime                 @updatedAt
-  branchId        Int?
+  branchId        String?
   branch          Branch?                  @relation(fields: [branchId], references: [id])
 
   @@index([status])
@@ -799,7 +799,7 @@ model CompanyTaxInfo {
   branchNumber    String   @default("00000")
   branchName      String?
   isHeadOffice    Boolean  @default(true)
-  branchId        Int?
+  branchId        String?
   branch          Branch?  @relation(fields: [branchId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -824,7 +824,7 @@ model TaxInvoice {
   issuedAt        DateTime  @default(now())
   voidedAt        DateTime?
   voidReason      String?
-  branchId        Int?
+  branchId        String?
   branch          Branch?   @relation(fields: [branchId], references: [id])
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -847,7 +847,7 @@ model KDSStation {
   isActive      Boolean  @default(true)
   sortOrder     Int      @default(0)
   alertTimeout  Int      @default(300)
-  branchId      Int?
+  branchId      String?
   branch        Branch?  @relation(fields: [branchId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -864,7 +864,7 @@ model SystemSetting {
   id        Int      @id @default(autoincrement())
   key       String   @unique
   value     Json
-  branchId  Int?
+  branchId  String?
   branch    Branch?  @relation(fields: [branchId], references: [id])
   updatedAt DateTime @updatedAt
 
@@ -882,7 +882,7 @@ model MqEventLog {
   eventType   String
   routingKey  String
   source      String?
-  branchId    Int?
+  branchId    String?
   status      String    @default("RECEIVED")
   payload     Json
   error       String?
@@ -931,7 +931,7 @@ model ConsoleUser {
 
 model Company {
   @@schema("food_ordering")
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(uuid())
   name          String
   nameEn        String?
   address       String?

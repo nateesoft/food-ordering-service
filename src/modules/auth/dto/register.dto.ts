@@ -4,7 +4,6 @@ import {
   MinLength,
   IsEnum,
   IsOptional,
-  IsInt,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
@@ -31,8 +30,8 @@ export class RegisterDto {
   @IsOptional()
   role?: UserRole;
 
-  @ApiPropertyOptional({ example: 1, description: 'Branch ID (null for ADMIN)' })
-  @IsInt()
+  @ApiPropertyOptional({ example: 'uuid-v4', description: 'Branch ID (UUID)' })
+  @IsString()
   @IsOptional()
-  branchId?: number;
+  branchId?: string;
 }

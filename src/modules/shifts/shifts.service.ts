@@ -16,7 +16,7 @@ export class ShiftsService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  private async generateShiftNumber(branchId?: number): Promise<string> {
+  private async generateShiftNumber(branchId?: string): Promise<string> {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
 
@@ -31,7 +31,7 @@ export class ShiftsService {
     return `SH-${dateStr}-${runningNumber}`;
   }
 
-  async openShift(dto: OpenShiftDto, branchId?: number) {
+  async openShift(dto: OpenShiftDto, branchId?: string) {
     // 1. Verify PIN
     const staff = await this.prisma.user.findUnique({
       where: { pin: dto.pin },
@@ -137,14 +137,14 @@ export class ShiftsService {
     return closedShift;
   }
 
-  async getActiveShift(branchId?: number) {
+  async getActiveShift(branchId?: string) {
     return this.prisma.shift.findFirst({
       where: { status: ShiftStatus.OPEN, branchId: branchId || null },
     });
   }
 
   async findAll(
-    branchId?: number,
+    branchId?: string,
     status?: ShiftStatus,
     startDate?: Date,
     endDate?: Date,

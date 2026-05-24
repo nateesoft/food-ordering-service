@@ -18,7 +18,7 @@ export class WebhooksService {
     return `whsec_${crypto.randomBytes(24).toString('hex')}`;
   }
 
-  async create(dto: CreateWebhookDto, branchId?: number) {
+  async create(dto: CreateWebhookDto, branchId?: string) {
     const secret = this.generateSecret();
 
     const webhook = await this.prisma.webhookEndpoint.create({
@@ -38,7 +38,7 @@ export class WebhooksService {
     return { ...webhook, secret };
   }
 
-  async findAll(branchId?: number) {
+  async findAll(branchId?: string) {
     const where: any = {};
     if (branchId) where.branchId = branchId;
 
@@ -130,7 +130,7 @@ export class WebhooksService {
   }
 
   // Called by webhook listener to dispatch to matching webhooks
-  async dispatchEvent(event: WebhookEvent, payload: any, branchId?: number) {
+  async dispatchEvent(event: WebhookEvent, payload: any, branchId?: string) {
     const where: any = {
       isActive: true,
       events: { has: event },

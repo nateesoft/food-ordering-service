@@ -16,7 +16,7 @@ export class TablesService {
     private auditService: AuditService,
   ) {}
 
-  async findAll(status?: TableStatus, branchId?: number, zone?: string) {
+  async findAll(status?: TableStatus, branchId?: string, zone?: string) {
     const where: any = {};
 
     if (branchId) {
@@ -51,7 +51,7 @@ export class TablesService {
     return table;
   }
 
-  async findByNumber(number: string, branchId?: number) {
+  async findByNumber(number: string, branchId?: string) {
     const table = await this.prisma.table.findFirst({
       where: { number, ...(branchId ? { branchId } : {}) },
     });
@@ -63,7 +63,7 @@ export class TablesService {
     return table;
   }
 
-  async create(createTableDto: CreateTableDto, branchId?: number) {
+  async create(createTableDto: CreateTableDto, branchId?: string) {
     const existing = await this.prisma.table.findFirst({
       where: { number: createTableDto.number, branchId: branchId ?? null },
     });
@@ -105,7 +105,7 @@ export class TablesService {
     });
   }
 
-  async getAvailableTables(branchId?: number) {
+  async getAvailableTables(branchId?: string) {
     const where: any = { status: TableStatus.AVAILABLE };
     if (branchId) where.branchId = branchId;
 
@@ -117,7 +117,7 @@ export class TablesService {
     });
   }
 
-  async getTableStats(branchId?: number) {
+  async getTableStats(branchId?: string) {
     const branchFilter = branchId ? { branchId } : {};
     const [available, occupied, reserved] = await Promise.all([
       this.prisma.table.count({ where: { status: TableStatus.AVAILABLE, ...branchFilter } }),
@@ -177,7 +177,7 @@ export class TablesService {
     });
   }
 
-  async openSession(tableId: number, dto: OpenTableSessionDto, branchId?: number) {
+  async openSession(tableId: number, dto: OpenTableSessionDto, branchId?: string) {
     const table = await this.findOne(tableId);
 
     if (table.status === TableStatus.OCCUPIED) {
@@ -268,7 +268,7 @@ export class TablesService {
     );
   }
 
-  async getZones(branchId?: number) {
+  async getZones(branchId?: string) {
     const where: any = { zone: { not: null } };
     if (branchId) where.branchId = branchId;
 
@@ -281,7 +281,7 @@ export class TablesService {
     return tables.map((t) => t.zone).filter(Boolean);
   }
 
-  async transferTable(fromTableId: number, dto: TransferTableDto, branchId?: number) {
+  async transferTable(fromTableId: number, dto: TransferTableDto, branchId?: string) {
     // 1. Validate source table
     const fromTable = await this.findOne(fromTableId);
     if (fromTable.status !== TableStatus.OCCUPIED && fromTable.status !== TableStatus.BILLING) {

@@ -17,7 +17,7 @@ export class PaymentGatewayService {
     this.provider = new MockPaymentProvider();
   }
 
-  async initiatePayment(dto: InitiatePaymentDto, branchId?: number) {
+  async initiatePayment(dto: InitiatePaymentDto, branchId?: string) {
     const result = await this.provider.initiatePayment({
       amount: dto.amount,
       paymentMethod: dto.paymentMethod,
@@ -128,7 +128,7 @@ export class PaymentGatewayService {
     };
   }
 
-  async findAll(branchId?: number) {
+  async findAll(branchId?: string) {
     const where: any = {};
     if (branchId) where.branchId = branchId;
 

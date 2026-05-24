@@ -11,7 +11,7 @@ export class PaymentGatewayController {
 
   @Post()
   @ApiOperation({ summary: 'Initiate a gateway payment' })
-  initiate(@Body() dto: InitiatePaymentDto, @BranchId() branchId?: number) {
+  initiate(@Body() dto: InitiatePaymentDto, @BranchId() branchId?: string) {
     return this.paymentGatewayService.initiatePayment(dto, branchId);
   }
 
@@ -29,7 +29,7 @@ export class PaymentGatewayController {
 
   @Get()
   @ApiOperation({ summary: 'List gateway transactions' })
-  findAll(@BranchId() branchId?: number) {
+  findAll(@BranchId() branchId?: string) {
     return this.paymentGatewayService.findAll(branchId);
   }
 }

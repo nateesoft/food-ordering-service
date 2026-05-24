@@ -120,7 +120,7 @@ export class AuthService {
     return user;
   }
 
-  async findAllUsers(branchId?: number) {
+  async findAllUsers(branchId?: string) {
     const where: any = {};
     if (branchId) where.branchId = branchId;
 
