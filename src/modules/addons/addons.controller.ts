@@ -19,10 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { AddonsService } from './addons.service';
 import { CreateAddOnDto, CreateAddOnGroupDto } from './dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
+import { ConsoleJwtAuthGuard } from '../console-auth/guards/console-jwt-auth.guard';
 
 @ApiTags('Add-ons')
 @Controller()
@@ -61,8 +59,7 @@ export class AddonsController {
   }
 
   @Post('addons')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new add-on (Admin only)' })
   @ApiResponse({ status: 201, description: 'Add-on created' })
@@ -71,8 +68,7 @@ export class AddonsController {
   }
 
   @Put('addons/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update add-on (Admin only)' })
   @ApiResponse({ status: 200, description: 'Add-on updated' })
@@ -85,8 +81,7 @@ export class AddonsController {
   }
 
   @Delete('addons/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete add-on (Admin only)' })
   @ApiResponse({ status: 200, description: 'Add-on deleted' })
@@ -120,8 +115,7 @@ export class AddonsController {
   }
 
   @Post('addon-groups')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new add-on group (Admin only)' })
   @ApiResponse({ status: 201, description: 'Add-on group created' })
@@ -130,8 +124,7 @@ export class AddonsController {
   }
 
   @Put('addon-groups/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update add-on group (Admin only)' })
   @ApiResponse({ status: 200, description: 'Add-on group updated' })
@@ -144,8 +137,7 @@ export class AddonsController {
   }
 
   @Delete('addon-groups/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete add-on group (Admin only)' })
   @ApiResponse({ status: 200, description: 'Add-on group deleted' })

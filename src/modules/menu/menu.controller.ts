@@ -19,10 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { MenuService } from './menu.service';
 import { CreateMenuItemDto, UpdateMenuItemDto } from './dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
+import { ConsoleJwtAuthGuard } from '../console-auth/guards/console-jwt-auth.guard';
 
 @ApiTags('Menu')
 @Controller('menu')
@@ -60,20 +58,18 @@ export class MenuController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create new menu item (Admin only)' })
+  @ApiOperation({ summary: 'Create new menu item (Console admin only)' })
   @ApiResponse({ status: 201, description: 'Menu item created' })
   create(@BranchId() branchId: string, @Body() createMenuItemDto: CreateMenuItemDto) {
     return this.menuService.create(createMenuItemDto, branchId);
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update menu item (Admin only)' })
+  @ApiOperation({ summary: 'Update menu item (Console admin only)' })
   @ApiResponse({ status: 200, description: 'Menu item updated' })
   @ApiResponse({ status: 404, description: 'Menu item not found' })
   update(
@@ -84,10 +80,9 @@ export class MenuController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete menu item (Admin only)' })
+  @ApiOperation({ summary: 'Delete menu item (Console admin only)' })
   @ApiResponse({ status: 200, description: 'Menu item deleted' })
   @ApiResponse({ status: 404, description: 'Menu item not found' })
   remove(@Param('id', ParseIntPipe) id: number) {

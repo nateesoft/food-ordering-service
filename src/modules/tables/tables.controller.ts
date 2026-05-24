@@ -21,8 +21,7 @@ import {
 import { TablesService } from './tables.service';
 import { CreateTableDto, UpdateTableStatusDto, OpenTableSessionDto, TransferTableDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { ConsoleJwtAuthGuard } from '../console-auth/guards/console-jwt-auth.guard';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
 import { TableStatus } from '@prisma/client';
 import { StaffService } from '../staff/staff.service';
@@ -84,6 +83,8 @@ export class TablesController {
   }
 
   @Patch('bulk-positions')
+  @UseGuards(ConsoleJwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Bulk update table positions (Admin)' })
   @ApiResponse({ status: 200, description: 'Positions updated' })
   bulkUpdatePositions(
@@ -163,20 +164,18 @@ export class TablesController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create new table (Admin only)' })
+  @ApiOperation({ summary: 'Create new table (Console admin only)' })
   @ApiResponse({ status: 201, description: 'Table created' })
   create(@BranchId() branchId: string, @Body() createTableDto: CreateTableDto) {
     return this.tablesService.create(createTableDto, branchId);
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update table (Admin only)' })
+  @ApiOperation({ summary: 'Update table (Console admin only)' })
   @ApiResponse({ status: 200, description: 'Table updated' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -255,10 +254,9 @@ export class TablesController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(ConsoleJwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete table (Admin only)' })
+  @ApiOperation({ summary: 'Delete table (Console admin only)' })
   @ApiResponse({ status: 200, description: 'Table deleted' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.tablesService.remove(id);
