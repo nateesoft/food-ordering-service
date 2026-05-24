@@ -30,6 +30,8 @@ import { KDSModule } from './modules/kds/kds.module';
 import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { SettingsModule } from './modules/settings/settings.module';
+import { PrintersModule } from './modules/printers/printers.module';
 
 @Module({
   imports: [
@@ -66,6 +68,8 @@ import { RedisModule } from './modules/redis/redis.module';
     RabbitMQBrokerModule,
     HealthModule,
     RedisModule,
+    SettingsModule,
+    PrintersModule,
   ],
   controllers: [],
   providers: [],
