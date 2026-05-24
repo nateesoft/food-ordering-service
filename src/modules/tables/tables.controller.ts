@@ -19,7 +19,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { TablesService } from './tables.service';
-import { CreateTableDto, UpdateTableStatusDto, OpenTableSessionDto, TransferTableDto } from './dto';
+import { CreateTableDto, UpdateTableStatusDto, OpenTableSessionDto, TransferTableDto, GenerateQrDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ConsoleJwtAuthGuard } from '../console-auth/guards/console-jwt-auth.guard';
 import { BranchId } from '../../common/decorators/branch-id.decorator';
@@ -107,6 +107,13 @@ export class TablesController {
   @ApiResponse({ status: 404, description: 'Table not found' })
   findByNumber(@Param('number') number: string) {
     return this.tablesService.findByNumber(number);
+  }
+
+  @Post('generate-qr')
+  @ApiOperation({ summary: 'Generate QR code for table ordering' })
+  @ApiResponse({ status: 201, description: 'QR code generated with a new sessionId' })
+  generateQrCode(@Body() dto: GenerateQrDto) {
+    return this.tablesService.generateQrCode(dto.branchId, dto.tableNumber);
   }
 
   @Post('register-session')

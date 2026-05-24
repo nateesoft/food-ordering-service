@@ -4,17 +4,29 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTableDto, UpdateTableStatusDto, OpenTableSessionDto, TransferTableDto } from './dto';
 import { TableStatus, OrderStatus } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
+import { v4 as uuidv4 } from 'uuid';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class TablesService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private configService: ConfigService,
   ) {}
+
+  async generateQrCode(branchId: string, tableNumber: string) {
+    const sessionId = uuidv4();
+    const baseUrl = this.configService.get<string>('FOOD_ORDERING_SYSTEM_URL', 'http://localhost:3333');
+    const orderUrl = `${baseUrl}/food-ordering/${branchId}/table/${tableNumber}?sessionId=${sessionId}`;
+    const qrCode = await QRCode.toDataURL(orderUrl);
+    return { url: orderUrl, sessionId, qrCode };
+  }
 
   async findAll(status?: TableStatus, branchId?: string, zone?: string) {
     const where: any = {};
