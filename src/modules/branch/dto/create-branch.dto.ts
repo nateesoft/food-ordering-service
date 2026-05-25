@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBranchDto {
@@ -24,4 +24,9 @@ export class CreateBranchDto {
   @IsOptional()
   @IsString()
   logo?: string;
+
+  @ApiPropertyOptional({ description: 'Theme mode for customer-facing UI', enum: ['LIGHT', 'DARK'] })
+  @IsOptional()
+  @IsIn(['LIGHT', 'DARK'])
+  themeMode?: 'LIGHT' | 'DARK';
 }

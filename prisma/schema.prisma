@@ -7,6 +7,13 @@ datasource db {
   schemas  = ["food_ordering"]
 }
 
+enum ThemeMode {
+  LIGHT
+  DARK
+
+  @@schema("food_ordering")
+}
+
 model Branch {
   @@schema("food_ordering")
   id              String           @id @default(uuid())
@@ -15,6 +22,7 @@ model Branch {
   address         String?
   phone           String?
   logo            String?
+  themeMode       ThemeMode        @default(LIGHT)
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
