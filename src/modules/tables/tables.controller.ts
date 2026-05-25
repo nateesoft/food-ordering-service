@@ -113,7 +113,7 @@ export class TablesController {
   @ApiOperation({ summary: 'Generate QR code for table ordering' })
   @ApiResponse({ status: 201, description: 'QR code generated with a new sessionId' })
   generateQrCode(@Body() dto: GenerateQrDto) {
-    return this.tablesService.generateQrCode(dto.branchId, dto.tableNumber);
+    return this.tablesService.generateQrCode(dto.branchId, dto.tableNumber, dto.baseUrl);
   }
 
   @Post('register-session')

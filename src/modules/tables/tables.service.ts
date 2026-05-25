@@ -20,10 +20,10 @@ export class TablesService {
     private configService: ConfigService,
   ) {}
 
-  async generateQrCode(branchId: string, tableNumber: string) {
+  async generateQrCode(branchId: string, tableNumber: string, baseUrl?: string) {
     const sessionId = uuidv4();
-    const baseUrl = this.configService.get<string>('FOOD_ORDERING_SYSTEM_URL', 'http://localhost:3333');
-    const orderUrl = `${baseUrl}/food-ordering/${branchId}/table/${tableNumber}?sessionId=${sessionId}`;
+    const resolvedBaseUrl = baseUrl || this.configService.get<string>('FOOD_ORDERING_SYSTEM_URL', 'http://localhost:3333');
+    const orderUrl = `${resolvedBaseUrl}/food-ordering/${branchId}/table/${tableNumber}?sessionId=${sessionId}`;
     const qrCode = await QRCode.toDataURL(orderUrl);
     return { url: orderUrl, sessionId, qrCode };
   }
