@@ -49,8 +49,13 @@ export class OrdersService {
           });
         }
         effectiveSessionId = requestedSessionId;
+      } else {
+        // sessionId ถูกส่งมาแต่ไม่พบใน Redis — หมดอายุหรือถูกปิดโดยพนักงาน
+        throw new ForbiddenException({
+          code: 'SESSION_EXPIRED',
+          message: 'เซสชันของคุณหมดอายุแล้ว กรุณาสแกน QR Code ใหม่',
+        });
       }
-      // If session not found in Redis, treat as no session (expired or cleared after payment)
     }
 
     if (!effectiveSessionId && createOrderDto.tableNumber) {
@@ -65,15 +70,10 @@ export class OrdersService {
           message: 'โต๊ะนี้ยังมีรายการที่ยังไม่ได้ชำระเงิน กรุณาติดต่อพนักงาน',
         });
       }
-      // Register session: prefer client-provided sessionId, fall back to generating a new one
-      if (requestedSessionId) {
-        effectiveSessionId = requestedSessionId;
-        await this.redisService.registerSession(requestedSessionId, createOrderDto.tableNumber, branchId ?? '');
-      } else {
-        newSessionId = randomUUID();
-        effectiveSessionId = newSessionId;
-        await this.redisService.registerSession(newSessionId, createOrderDto.tableNumber, branchId ?? '');
-      }
+      // No sessionId provided at all — generate a new one (staff-initiated order)
+      newSessionId = randomUUID();
+      effectiveSessionId = newSessionId;
+      await this.redisService.registerSession(newSessionId, createOrderDto.tableNumber, branchId ?? '');
     }
 
     // Pre-check stock availability
