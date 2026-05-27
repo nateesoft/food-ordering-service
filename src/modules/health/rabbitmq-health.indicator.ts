@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus'
+import { HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus'
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq'
+import { BrokerHealthIndicator } from './broker-health.indicator'
 
 @Injectable()
-export class RabbitMQHealthIndicator extends HealthIndicator {
+export class RabbitMQHealthIndicator extends BrokerHealthIndicator {
   constructor(private readonly amqpConnection: AmqpConnection) {
     super()
   }

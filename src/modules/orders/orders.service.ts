@@ -6,7 +6,7 @@ import { OrderStatus } from '@prisma/client';
 import { InventoryService } from '../inventory/inventory.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditService } from '../audit/audit.service';
-import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
+import { MessageBroker } from '../messaging/messaging.interface';
 import { ROUTING_KEYS, OrderCreatedPayload, OrderStatusChangedPayload, OrderItemDetail } from '../rabbitmq/events';
 import { RedisService } from '../redis/redis.service';
 
@@ -19,7 +19,7 @@ export class OrdersService {
     private inventoryService: InventoryService,
     private eventEmitter: EventEmitter2,
     private auditService: AuditService,
-    private rabbitMQPublisher: RabbitMQPublisher,
+    private broker: MessageBroker,
     private redisService: RedisService,
   ) {}
 
@@ -224,7 +224,7 @@ export class OrdersService {
         : order.createdAt,
       itemDetails,
     };
-    this.rabbitMQPublisher.publish(ROUTING_KEYS.ORDER_CREATED, payload, branchId);
+    this.broker.publish(ROUTING_KEYS.ORDER_CREATED, payload, branchId);
   }
 
   private publishOrderStatusChanged(previousOrder: any, updatedOrder: any): void {
@@ -243,7 +243,7 @@ export class OrdersService {
         ? updatedOrder.updatedAt.toISOString()
         : updatedOrder.updatedAt,
     };
-    this.rabbitMQPublisher.publish(routingKey, payload, updatedOrder.branchId);
+    this.broker.publish(routingKey, payload, updatedOrder.branchId);
   }
 
   async findAll(status?: OrderStatus, tableNumber?: string, branchId?: string, sessionId?: string) {

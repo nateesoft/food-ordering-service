@@ -27,7 +27,7 @@ import { EventsModule } from './modules/events/events.module';
 import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
 import { TaxInvoiceModule } from './modules/tax-invoice/tax-invoice.module';
 import { KDSModule } from './modules/kds/kds.module';
-import { RabbitMQBrokerModule } from './modules/rabbitmq/rabbitmq.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { SettingsModule } from './modules/settings/settings.module';
@@ -65,8 +65,8 @@ import { PrintersModule } from './modules/printers/printers.module';
     PaymentGatewayModule,
     TaxInvoiceModule,
     KDSModule,
-    RabbitMQBrokerModule,
-    HealthModule,
+    MessagingModule.forRoot(),
+    HealthModule.forRoot(),
     RedisModule,
     SettingsModule,
     PrintersModule,

@@ -1,14 +1,14 @@
 import { Controller, Get } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import { PrismaHealthIndicator } from './prisma-health.indicator'
-import { RabbitMQHealthIndicator } from './rabbitmq-health.indicator'
+import { BrokerHealthIndicator } from './broker-health.indicator'
 
 @Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,
     private prismaIndicator: PrismaHealthIndicator,
-    private rabbitmqIndicator: RabbitMQHealthIndicator,
+    private brokerIndicator: BrokerHealthIndicator,
   ) {}
 
   @Get()
@@ -16,7 +16,7 @@ export class HealthController {
   check() {
     return this.health.check([
       () => this.prismaIndicator.isHealthy('database'),
-      () => this.rabbitmqIndicator.isHealthy('rabbitmq'),
+      () => this.brokerIndicator.isHealthy('broker'),
     ])
   }
 }

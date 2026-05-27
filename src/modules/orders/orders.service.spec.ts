@@ -5,7 +5,7 @@ import { OrdersService } from './orders.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { AuditService } from '../audit/audit.service';
-import { RabbitMQPublisher } from '../rabbitmq/rabbitmq.publisher';
+import { MessageBroker } from '../messaging/messaging.interface';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
 import { mockOrder, mockOrderItem } from '../../test/fixtures';
 
@@ -38,7 +38,7 @@ describe('OrdersService', () => {
         { provide: InventoryService, useValue: inventoryService },
         { provide: EventEmitter2, useValue: eventEmitter },
         { provide: AuditService, useValue: auditService },
-        { provide: RabbitMQPublisher, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
+        { provide: MessageBroker, useValue: { publish: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

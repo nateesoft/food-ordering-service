@@ -40,6 +40,6 @@ import { RabbitMQFileLogger } from '../../common/logger/rabbitmq-file-logger.ser
     }),
   ],
   providers: [RabbitMQPublisher, RabbitMQConsumer, RabbitMQFileLogger],
-  exports: [RabbitMQPublisher, RabbitMQModule],
+  exports: [RabbitMQPublisher, RabbitMQModule, RabbitMQFileLogger],
 })
 export class RabbitMQBrokerModule {}
