@@ -928,12 +928,22 @@ enum ConsoleRole {
   @@schema("food_ordering")
 }
 
+enum ConsolePlan {
+  FREE
+  BASIC
+  PRO
+
+  @@schema("food_ordering")
+}
+
 model ConsoleUser {
   @@schema("food_ordering")
   id               String      @id @default(uuid())
   email            String      @unique
   password         String
   role             ConsoleRole @default(CUSTOMER)
+  plan             ConsolePlan @default(FREE)
+  planUpdatedAt    DateTime?
   companyName      String
   companyAddress   String?
   companyPhone     String?

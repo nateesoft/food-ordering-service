@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -15,8 +16,9 @@ import {
   ConsoleForgotPasswordDto,
   ConsoleResetPasswordDto,
   UpdateCompanyDto,
+  UpdateCustomerPlanDto,
 } from './dto';
-import { ConsoleRole } from '@prisma/client';
+import { ConsoleRole, ConsolePlan } from '@prisma/client';
 
 @Injectable()
 export class ConsoleAuthService {
@@ -182,6 +184,8 @@ export class ConsoleAuthService {
       id: user.id,
       username: user.email,
       role: this.mapRole(user.role),
+      plan: user.plan,
+      planUpdatedAt: user.planUpdatedAt,
       companyName: user.companyName,
       companyAddress: user.companyAddress,
       companyPhone: user.companyPhone,
@@ -319,6 +323,8 @@ export class ConsoleAuthService {
       id: c.id,
       username: c.email,
       companyName: c.companyName,
+      plan: c.plan,
+      planUpdatedAt: c.planUpdatedAt,
       branchCount: c.branches.length,
       menuCount: c.branches.reduce((s, b) => s + b._count.menuItems, 0),
       staffCount: c.branches.reduce((s, b) => s + b._count.users, 0),
@@ -333,6 +339,32 @@ export class ConsoleAuthService {
       totalStaff,
       totalTables,
       customerList,
+    };
+  }
+
+  // ---- Update Customer Plan (Admin) ----
+  async updateCustomerPlan(customerId: string, dto: UpdateCustomerPlanDto) {
+    const customer = await this.prisma.consoleUser.findFirst({
+      where: { id: customerId, role: ConsoleRole.CUSTOMER },
+    });
+
+    if (!customer) {
+      throw new NotFoundException('ไม่พบลูกค้า');
+    }
+
+    const updated = await this.prisma.consoleUser.update({
+      where: { id: customerId },
+      data: {
+        plan: dto.plan as ConsolePlan,
+        planUpdatedAt: new Date(),
+      },
+    });
+
+    return {
+      message: 'อัพเดต plan สำเร็จ',
+      id: updated.id,
+      plan: updated.plan,
+      planUpdatedAt: updated.planUpdatedAt,
     };
   }
 
