@@ -16,10 +16,8 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('food-ordering-service') {
-                    bat 'npm ci'
-                    bat 'npm run build'
-                }
+                bat 'npm ci'
+                bat 'npm run build'
             }
         }
 
@@ -34,9 +32,9 @@ pipeline {
             steps {
                 bat "if not exist %DEPLOY_DIR%\\uploads mkdir %DEPLOY_DIR%\\uploads"
 
-                bat "robocopy food-ordering-service\\dist %DEPLOY_DIR%\\dist /E /PURGE & if %ERRORLEVEL% LEQ 7 exit 0"
-                bat "copy /Y food-ordering-service\\package.json %DEPLOY_DIR%\\package.json"
-                bat "copy /Y food-ordering-service\\package-lock.json %DEPLOY_DIR%\\package-lock.json"
+                bat "robocopy dist %DEPLOY_DIR%\\dist /E /PURGE & if %ERRORLEVEL% LEQ 7 exit 0"
+                bat "copy /Y package.json %DEPLOY_DIR%\\package.json"
+                bat "copy /Y package-lock.json %DEPLOY_DIR%\\package-lock.json"
 
                 bat "cd %DEPLOY_DIR% && npm ci --omit=dev"
             }
@@ -44,7 +42,7 @@ pipeline {
 
         stage('Deploy Config') {
             steps {
-                bat "copy /Y food-ordering-service\\ecosystem.config.js %DEPLOY_DIR%\\ecosystem.config.js"
+                bat "copy /Y ecosystem.config.js %DEPLOY_DIR%\\ecosystem.config.js"
             }
         }
 
