@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_DIR = 'C:\\apps\\food-ordering\\food-ordering-service'
+        DEPLOY_DIR = 'D:\\apps\\food-ordering\\food-ordering-service'
         PM2_HOME   = 'C:\\ProgramData\\pm2'
     }
 
