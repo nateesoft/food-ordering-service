@@ -36,7 +36,7 @@ pipeline {
                 bat "copy /Y package.json %DEPLOY_DIR%\\package.json"
                 bat "copy /Y package-lock.json %DEPLOY_DIR%\\package-lock.json"
 
-                bat "cd %DEPLOY_DIR% && npm ci --omit=dev"
+                bat "cd /d %DEPLOY_DIR% && npm ci --omit=dev"
             }
         }
 
@@ -48,7 +48,7 @@ pipeline {
 
         stage('Start PM2') {
             steps {
-                bat "cd %DEPLOY_DIR% && pm2 start ecosystem.config.js --env production"
+                bat "cd /d %DEPLOY_DIR% && pm2 start ecosystem.config.js --env production"
                 bat 'pm2 save'
             }
         }
