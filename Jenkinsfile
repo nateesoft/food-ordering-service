@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DEPLOY_DIR = 'D:\\ICS-Projects\\apps\\food-ordering\\food-ordering-service'
-        PM2_HOME   = 'C:\\ProgramData\\pm2'
+        PM2_HOME   = 'C:\\Users\\Administrator\\.pm2'
     }
 
     stages {
