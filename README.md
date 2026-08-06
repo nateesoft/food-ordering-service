@@ -38,7 +38,7 @@ cp .env.example .env
 แก้ไขไฟล์ `.env` ตามต้องการ:
 
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/food_ordering"
+DATABASE_URL="postgresql://postgres:password@localhost:5433/food_ordering"
 JWT_SECRET="your-super-secret-jwt-key"
 JWT_EXPIRES_IN="7d"
 PORT=5555
