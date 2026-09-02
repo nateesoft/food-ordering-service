@@ -33,8 +33,17 @@ pipeline {
             steps {
                 bat "if not exist %DEPLOY_DIR%\\uploads mkdir %DEPLOY_DIR%\\uploads"
 
-                bat "robocopy dist %DEPLOY_DIR%\\dist /E /PURGE & if %ERRORLEVEL% GEQ 8 exit /b 1"
-                bat "robocopy prisma %DEPLOY_DIR%\\prisma /E /PURGE & if %ERRORLEVEL% GEQ 8 exit /b 1"
+                // robocopy uses exit codes 0-7 for success (>=8 = real failure).
+                // Check errorlevel on its own line so it is read AFTER robocopy runs,
+                // then normalise to 0 so the bat step is not marked as failed.
+                bat """
+                    robocopy dist %DEPLOY_DIR%\\dist /E /PURGE
+                    if %ERRORLEVEL% GEQ 8 (exit /b 1) else (exit /b 0)
+                """
+                bat """
+                    robocopy prisma %DEPLOY_DIR%\\prisma /E /PURGE
+                    if %ERRORLEVEL% GEQ 8 (exit /b 1) else (exit /b 0)
+                """
                 bat "copy /Y prisma.config.ts %DEPLOY_DIR%\\prisma.config.ts"
                 bat "copy /Y package.json %DEPLOY_DIR%\\package.json"
                 bat "copy /Y package-lock.json %DEPLOY_DIR%\\package-lock.json"
