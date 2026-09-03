@@ -15,6 +15,16 @@ pipeline {
             }
         }
 
+        stage('Provision Env') {
+            steps {
+                // Prod .env is git-ignored; pull it from a Jenkins "Secret file" credential.
+                // Create it under Manage Jenkins > Credentials with ID: food-ordering-service-env
+                withCredentials([file(credentialsId: 'food-ordering-service-env', variable: 'ENV_FILE')]) {
+                    bat 'copy /Y "%ENV_FILE%" .env'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 bat 'npm ci'
@@ -47,6 +57,7 @@ pipeline {
                 bat "copy /Y prisma.config.ts %DEPLOY_DIR%\\prisma.config.ts"
                 bat "copy /Y package.json %DEPLOY_DIR%\\package.json"
                 bat "copy /Y package-lock.json %DEPLOY_DIR%\\package-lock.json"
+                bat "copy /Y .env %DEPLOY_DIR%\\.env"
 
                 bat "cd /d %DEPLOY_DIR% && npm ci --omit=dev"
             }
