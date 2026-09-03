@@ -15,13 +15,19 @@ pipeline {
             }
         }
 
-        stage('Provision Env') {
+        stage('Check Env') {
             steps {
-                // Prod .env is git-ignored; pull it from a Jenkins "Secret file" credential.
-                // Create it under Manage Jenkins > Credentials with ID: food-ordering-service-env
-                withCredentials([file(credentialsId: 'food-ordering-service-env', variable: 'ENV_FILE')]) {
-                    bat 'copy /Y "%ENV_FILE%" .env'
-                }
+                // The production .env is placed manually on the server and lives at
+                // %DEPLOY_DIR%\.env . The pipeline never creates or overwrites it;
+                // it only fails early here if it is missing so PM2 does not crash-loop.
+                bat '''
+                    if not exist "%DEPLOY_DIR%\\.env" (
+                        echo ERROR: "%DEPLOY_DIR%\\.env" not found.
+                        echo Place the production .env file there manually, then re-run this build.
+                        exit /b 1
+                    )
+                    echo Found "%DEPLOY_DIR%\\.env"
+                '''
             }
         }
 
@@ -57,7 +63,6 @@ pipeline {
                 bat "copy /Y prisma.config.ts %DEPLOY_DIR%\\prisma.config.ts"
                 bat "copy /Y package.json %DEPLOY_DIR%\\package.json"
                 bat "copy /Y package-lock.json %DEPLOY_DIR%\\package-lock.json"
-                bat "copy /Y .env %DEPLOY_DIR%\\.env"
 
                 bat "cd /d %DEPLOY_DIR% && npm ci --omit=dev"
             }
