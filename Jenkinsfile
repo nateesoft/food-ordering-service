@@ -71,6 +71,9 @@ pipeline {
         stage('Deploy Config') {
             steps {
                 bat "copy /Y ecosystem.config.js %DEPLOY_DIR%\\ecosystem.config.js"
+                // Recovery script: run %DEPLOY_DIR%\scripts\pm2-start-all.bat if the PM2 apps get stopped/deleted.
+                bat "if not exist %DEPLOY_DIR%\\scripts mkdir %DEPLOY_DIR%\\scripts"
+                bat "copy /Y scripts\\pm2-start-all.* %DEPLOY_DIR%\\scripts\\"
             }
         }
 

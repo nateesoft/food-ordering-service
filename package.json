@@ -26,7 +26,8 @@
     "db:migrate:reset": "prisma migrate reset",
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "pm2:start-all": "node scripts/pm2-start-all.js"
   },
   "dependencies": {
     "@golevelup/nestjs-rabbitmq": "^9.0.0",
