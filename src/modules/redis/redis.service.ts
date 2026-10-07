@@ -68,4 +68,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async getSessionTTL(sessionId: string): Promise<number> {
     return this.client.ttl(`${SESSION_PREFIX}${sessionId}`);
   }
+
+  async ping(): Promise<string> {
+    return this.client.ping();
+  }
+
+  getConnectionInfo(): { host?: string; port?: number; db?: number; status: string } {
+    const { host, port, db } = this.client.options;
+    return { host, port, db, status: this.client.status };
+  }
 }

@@ -2,7 +2,9 @@ import { DynamicModule, Module, Type } from '@nestjs/common'
 import { TerminusModule } from '@nestjs/terminus'
 import { PrismaModule } from '../../prisma/prisma.module'
 import { RabbitMQBrokerModule } from '../rabbitmq/rabbitmq.module'
+import { UploadModule } from '../upload/upload.module'
 import { HealthController } from './health.controller'
+import { HealthInfoService } from './health-info.service'
 import { PrismaHealthIndicator } from './prisma-health.indicator'
 import { RabbitMQHealthIndicator } from './rabbitmq-health.indicator'
 import { KafkaHealthIndicator } from './kafka-health.indicator'
@@ -25,9 +27,9 @@ export class HealthModule {
 
     return {
       module: HealthModule,
-      imports: [TerminusModule, PrismaModule, ...brokerImports],
+      imports: [TerminusModule, PrismaModule, UploadModule, ...brokerImports],
       controllers: [HealthController],
-      providers: [PrismaHealthIndicator, brokerProvider],
+      providers: [PrismaHealthIndicator, HealthInfoService, brokerProvider],
     }
   }
 }

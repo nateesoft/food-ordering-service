@@ -132,6 +132,15 @@ export class UploadService implements OnModuleInit {
     });
   }
 
+  async checkStorage(): Promise<{
+    endpoint: string;
+    bucket: string;
+    bucketExists: boolean;
+  }> {
+    const bucketExists = await this.minioClient.bucketExists(this.bucket);
+    return { endpoint: this.endpointUrl, bucket: this.bucket, bucketExists };
+  }
+
   async deleteImage(filename: string): Promise<void> {
     const sanitized = path.basename(filename);
     try {
