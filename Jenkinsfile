@@ -106,9 +106,12 @@ pipeline {
         }
         failure {
             echo 'Deployment food-ordering-service failed — check the logs above.'
-            // The app was stopped/deleted before deploy; try to bring whatever is in DEPLOY_DIR back up.
+            // If the app is no longer registered in PM2 (it was deleted in 'Stop PM2'), try to
+            // bring whatever is in DEPLOY_DIR back up. If it is still registered (failure happened
+            // before 'Stop PM2'), leave it alone — `pm2 start` would restart it needlessly.
             bat '''
-                if exist "%DEPLOY_DIR%\\ecosystem.config.js" if exist "%DEPLOY_DIR%\\dist\\main.js" (
+                call pm2 describe food-ordering-service >nul 2>&1
+                if errorlevel 1 if exist "%DEPLOY_DIR%\\ecosystem.config.js" if exist "%DEPLOY_DIR%\\dist\\main.js" (
                     if not exist "%DEPLOY_DIR%\\logs" mkdir "%DEPLOY_DIR%\\logs"
                     cd /d "%DEPLOY_DIR%" && call pm2 start ecosystem.config.js --only food-ordering-service --env production
                 )
