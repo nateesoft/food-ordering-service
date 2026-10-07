@@ -68,6 +68,12 @@ pipeline {
             }
         }
 
+        stage('Migrate DB') {
+            steps {
+                bat "cd /d %DEPLOY_DIR% && npx prisma migrate deploy"
+            }
+        }
+
         stage('Deploy Config') {
             steps {
                 bat "copy /Y ecosystem.config.js %DEPLOY_DIR%\\ecosystem.config.js"
@@ -100,6 +106,14 @@ pipeline {
         }
         failure {
             echo 'Deployment food-ordering-service failed — check the logs above.'
+            // The app was stopped/deleted before deploy; try to bring whatever is in DEPLOY_DIR back up.
+            bat '''
+                if exist "%DEPLOY_DIR%\\ecosystem.config.js" if exist "%DEPLOY_DIR%\\dist\\main.js" (
+                    if not exist "%DEPLOY_DIR%\\logs" mkdir "%DEPLOY_DIR%\\logs"
+                    cd /d "%DEPLOY_DIR%" && call pm2 start ecosystem.config.js --only food-ordering-service --env production
+                )
+                exit /b 0
+            '''
         }
     }
 }
